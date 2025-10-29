@@ -5,12 +5,14 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { Status } from '@prisma/client';
 import { EmailService } from '../auth/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TicketsService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto, userId: string) {
@@ -269,6 +271,19 @@ export class TicketsService {
       // Don't fail the request if email fails
     }
 
+    // Create in-app notification for ticket owner
+    try {
+      await this.notificationsService.createNotification(
+        ticket.userId,
+        'STATUS_CHANGE',
+        `Ticket "${ticket.title}" status changed from ${oldStatus} to ${newStatus}`,
+        ticketId,
+      );
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+      // Don't fail the request if notification fails
+    }
+
     return {
       message: 'Ticket status updated successfully',
       ticket: updatedTicket,
@@ -386,6 +401,15 @@ export class TicketsService {
     // Verify that the ticket exists (no ownership check for admin)
     const ticket = await this.prisma.ticket.findUnique({
       where: { id: ticketId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!ticket) {
@@ -409,6 +433,27 @@ export class TicketsService {
         },
       },
     });
+
+    // Create notification for ticket owner if admin is commenting
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+        select: { username: true },
+      });
+
+      if (admin) {
+        await this.notificationsService.createNotification(
+          ticket.userId,
+          'COMMENT',
+          `${admin.username} commented on your ticket "${ticket.title}"`,
+          ticketId,
+          comment.id,
+        );
+      }
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+      // Don't fail the request if notification fails
+    }
 
     return {
       message: 'Comment created successfully',
