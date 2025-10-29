@@ -168,3 +168,88 @@ export const ticketService = {
   },
 };
 
+export const adminTicketService = {
+  async getAllTickets(token, params = {}) {
+    const queryParams = new URLSearchParams();
+    
+    // Add query parameters if they exist
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const queryString = queryParams.toString();
+    const url = `${API_BASE_URL}/admin/tickets${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch tickets');
+    }
+
+    return data;
+  },
+
+  async getTicketById(id, token) {
+    const response = await fetch(`${API_BASE_URL}/admin/tickets/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch ticket');
+    }
+
+    return data;
+  },
+
+  async updateTicketStatus(id, status, token) {
+    const response = await fetch(`${API_BASE_URL}/admin/tickets/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update ticket status');
+    }
+
+    return data;
+  },
+
+  async getTicketStatusHistory(id, token) {
+    const response = await fetch(`${API_BASE_URL}/admin/tickets/${id}/history`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch ticket history');
+    }
+
+    return data;
+  },
+};
+

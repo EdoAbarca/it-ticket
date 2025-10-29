@@ -116,4 +116,84 @@ export class EmailService {
       </html>
     `;
   }
+
+  async sendTicketStatusChangeEmail(
+    email: string,
+    ticketTitle: string,
+    oldStatus: string,
+    newStatus: string,
+  ): Promise<void> {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || 'noreply@example.com',
+      to: email,
+      subject: `Ticket Status Updated: ${ticketTitle}`,
+      html: this.getTicketStatusChangeTemplate(
+        ticketTitle,
+        oldStatus,
+        newStatus,
+      ),
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending ticket status change email:', error);
+      throw new Error('Failed to send ticket status change email');
+    }
+  }
+
+  private getTicketStatusChangeTemplate(
+    ticketTitle: string,
+    oldStatus: string,
+    newStatus: string,
+  ): string {
+    const statusColors: { [key: string]: string } = {
+      OPEN: '#6c757d',
+      IN_PROGRESS: '#0dcaf0',
+      RESOLVED: '#198754',
+      CLOSED: '#343a40',
+    };
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin: 0 5px;
+          }
+          .footer { margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Ticket Status Update</h2>
+          <p>Your ticket has been updated:</p>
+          <p><strong>Ticket:</strong> ${ticketTitle}</p>
+          <p>
+            <strong>Status changed from:</strong>
+            <span class="status-badge" style="background-color: ${statusColors[oldStatus] || '#6c757d'}">
+              ${oldStatus.replace('_', ' ')}
+            </span>
+            <strong>to:</strong>
+            <span class="status-badge" style="background-color: ${statusColors[newStatus] || '#6c757d'}">
+              ${newStatus.replace('_', ' ')}
+            </span>
+          </p>
+          <p>Log in to your account to view more details.</p>
+          <div class="footer">
+            <p>This is an automated email, please do not reply.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
 }

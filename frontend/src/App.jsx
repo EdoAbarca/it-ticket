@@ -9,6 +9,8 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminTicketDetail from './pages/AdminTicketDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -50,6 +52,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <TicketDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/tickets/:id" 
+            element={
+              <ProtectedRoute>
+                <AdminTicketDetail />
               </ProtectedRoute>
             } 
           />
