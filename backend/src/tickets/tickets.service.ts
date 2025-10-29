@@ -15,6 +15,17 @@ export class TicketsService {
     private notificationsService: NotificationsService,
   ) {}
 
+  /**
+   * Get all admin user IDs from the database
+   */
+  private async getAdminUserIds(): Promise<string[]> {
+    const admins = await this.prisma.user.findMany({
+      where: { isAdmin: true },
+      select: { id: true },
+    });
+    return admins.map((admin) => admin.id);
+  }
+
   async create(createTicketDto: CreateTicketDto, userId: string) {
     const ticket = await this.prisma.ticket.create({
       data: {
@@ -31,6 +42,23 @@ export class TicketsService {
         },
       },
     });
+
+    // Notify all admins about the new ticket
+    try {
+      const adminIds = await this.getAdminUserIds();
+      const notificationPromises = adminIds.map((adminId) =>
+        this.notificationsService.createNotification(
+          adminId,
+          'COMMENT',
+          `New ticket created: "${ticket.title}" by ${ticket.user.username}`,
+          ticket.id,
+        ),
+      );
+      await Promise.all(notificationPromises);
+    } catch (error) {
+      console.error('Failed to create admin notifications:', error);
+      // Don't fail the request if notifications fail
+    }
 
     return {
       message: 'Ticket created successfully',
@@ -329,6 +357,15 @@ export class TicketsService {
         id: ticketId,
         userId,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!ticket) {
@@ -354,6 +391,24 @@ export class TicketsService {
         },
       },
     });
+
+    // Notify all admins about the new comment
+    try {
+      const adminIds = await this.getAdminUserIds();
+      const notificationPromises = adminIds.map((adminId) =>
+        this.notificationsService.createNotification(
+          adminId,
+          'COMMENT',
+          `${comment.user.username} commented on ticket "${ticket.title}"`,
+          ticketId,
+          comment.id,
+        ),
+      );
+      await Promise.all(notificationPromises);
+    } catch (error) {
+      console.error('Failed to create admin notifications:', error);
+      // Don't fail the request if notifications fail
+    }
 
     return {
       message: 'Comment created successfully',
@@ -449,6 +504,20 @@ export class TicketsService {
           ticketId,
           comment.id,
         );
+
+        // Also notify other admins about this comment
+        const adminIds = await this.getAdminUserIds();
+        const otherAdminIds = adminIds.filter((id) => id !== adminId);
+        const notificationPromises = otherAdminIds.map((otherAdminId) =>
+          this.notificationsService.createNotification(
+            otherAdminId,
+            'COMMENT',
+            `${admin.username} commented on ticket "${ticket.title}"`,
+            ticketId,
+            comment.id,
+          ),
+        );
+        await Promise.all(notificationPromises);
       }
     } catch (error) {
       console.error('Failed to create notification:', error);
