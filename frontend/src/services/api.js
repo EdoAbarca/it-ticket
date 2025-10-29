@@ -91,3 +91,67 @@ export const authService = {
     return data;
   },
 };
+
+export const ticketService = {
+  async createTicket(ticketData, token) {
+    const formData = new FormData();
+    formData.append('title', ticketData.title);
+    formData.append('description', ticketData.description);
+    formData.append('priority', ticketData.priority);
+    
+    if (ticketData.image) {
+      formData.append('image', ticketData.image);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/tickets`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create ticket');
+    }
+
+    return data;
+  },
+
+  async getTickets(token) {
+    const response = await fetch(`${API_BASE_URL}/tickets`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch tickets');
+    }
+
+    return data;
+  },
+
+  async getTicket(id, token) {
+    const response = await fetch(`${API_BASE_URL}/tickets/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch ticket');
+    }
+
+    return data;
+  },
+};
+

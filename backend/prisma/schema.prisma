@@ -21,6 +21,7 @@ model User {
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   passwordResetTokens  PasswordResetToken[]
+  tickets              Ticket[]
 }
 
 model PasswordResetToken {
@@ -31,4 +32,31 @@ model PasswordResetToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
   used      Boolean  @default(false)
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  priority    Priority @default(MEDIUM)
+  status      Status   @default(OPEN)
+  imageUrl    String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
