@@ -7,7 +7,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body(new ValidationPipe({ whitelist: true })) registerDto: RegisterDto) {
+  async register(
+    @Body(new ValidationPipe({ whitelist: true })) registerDto: RegisterDto,
+  ) {
     return this.authService.register(registerDto);
   }
 }

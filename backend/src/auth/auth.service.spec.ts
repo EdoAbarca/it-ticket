@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -8,7 +7,6 @@ jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -29,7 +27,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prismaService = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -92,7 +89,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       mockPrismaService.user.findUnique.mockResolvedValue(existingUser);
 
       await expect(service.register(registerDto)).rejects.toThrow(
@@ -112,7 +109,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       mockPrismaService.user.findUnique
         .mockResolvedValueOnce(null) // username check passes
         .mockResolvedValueOnce(existingUser); // email check fails
@@ -138,13 +135,13 @@ describe('AuthService', () => {
       await service.register(registerDto);
 
       expect(bcrypt.hash).toHaveBeenCalledWith(registerDto.password, 10);
-      expect(mockPrismaService.user.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            password: hashedPassword,
-          }),
-        }),
-      );
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
+        data: {
+          username: registerDto.username,
+          email: registerDto.email,
+          password: hashedPassword,
+        },
+      });
     });
 
     it('should not return password in response', async () => {
