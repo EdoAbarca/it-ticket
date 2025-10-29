@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1761748459039" clover="3.2.0">
+  <project timestamp="1761748459039" name="All files">
+    <metrics statements="60" coveredstatements="28" conditionals="22" coveredconditionals="10" methods="10" coveredmethods="5" elements="92" coveredelements="43" complexity="0" loc="60" ncloc="60" packages="4" files="9" classes="9"/>
+    <package name="src">
+      <metrics statements="22" coveredstatements="9" conditionals="6" coveredconditionals="3" methods="4" coveredmethods="3"/>
+      <file name="app.controller.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/app.controller.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+      </file>
+      <file name="app.module.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/app.module.ts">
+        <metrics statements="5" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+      </file>
+      <file name="app.service.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/app.service.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+      </file>
+      <file name="main.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/main.ts">
+        <metrics statements="8" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="23" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.auth">
+      <metrics statements="28" coveredstatements="16" conditionals="16" coveredconditionals="7" methods="4" coveredmethods="2"/>
+      <file name="auth.controller.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/auth/auth.controller.ts">
+        <metrics statements="7" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="10" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="11" count="0" type="stmt"/>
+      </file>
+      <file name="auth.module.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/auth/auth.module.ts">
+        <metrics statements="5" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+      </file>
+      <file name="auth.service.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/auth/auth.service.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="8" coveredconditionals="7" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="6" type="cond" truecount="3" falsecount="1"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="18" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="23" count="4" type="stmt"/>
+        <line num="27" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="32" count="3" type="stmt"/>
+        <line num="35" count="3" type="stmt"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="46" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.auth.dto">
+      <metrics statements="5" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="register.dto.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/auth/dto/register.dto.ts">
+        <metrics statements="5" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.prisma">
+      <metrics statements="5" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="prisma.service.ts" path="/home/runner/work/it-ticket/it-ticket/backend/src/prisma/prisma.service.ts">
+        <metrics statements="5" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
