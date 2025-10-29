@@ -13,6 +13,8 @@ describe('AdminTicketsController', () => {
     findTicketById: jest.fn(),
     updateTicketStatus: jest.fn(),
     getTicketStatusHistory: jest.fn(),
+    createAdminComment: jest.fn(),
+    getAdminComments: jest.fn(),
   };
 
   const mockJwtAuthGuard = {
@@ -223,6 +225,96 @@ describe('AdminTicketsController', () => {
 
       expect(result).toEqual(mockHistory);
       expect(mockTicketsService.getTicketStatusHistory).toHaveBeenCalledWith(
+        ticketId,
+      );
+    });
+  });
+
+  describe('createComment', () => {
+    const ticketId = 'ticket-123';
+    const adminId = 'admin-123';
+    const mockRequest = {
+      user: { id: adminId },
+    };
+
+    it('should allow admin to create a comment on any ticket', async () => {
+      const createCommentDto = { content: 'Admin support response' };
+      const mockResponse = {
+        message: 'Comment created successfully',
+        comment: {
+          id: 'comment-123',
+          content: 'Admin support response',
+          ticketId,
+          userId: adminId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: adminId,
+            username: 'admin',
+            email: 'admin@example.com',
+            isAdmin: true,
+          },
+        },
+      };
+
+      mockTicketsService.createAdminComment.mockResolvedValue(mockResponse);
+
+      const result = await controller.createComment(
+        ticketId,
+        createCommentDto,
+        mockRequest as any,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.createAdminComment).toHaveBeenCalledWith(
+        ticketId,
+        'Admin support response',
+        adminId,
+      );
+    });
+  });
+
+  describe('getComments', () => {
+    const ticketId = 'ticket-123';
+
+    it('should allow admin to view comments on any ticket', async () => {
+      const mockComments = [
+        {
+          id: 'comment-1',
+          content: 'User comment',
+          ticketId,
+          userId: 'user-123',
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+          user: {
+            id: 'user-123',
+            username: 'testuser',
+            email: 'test@example.com',
+            isAdmin: false,
+          },
+        },
+        {
+          id: 'comment-2',
+          content: 'Admin response',
+          ticketId,
+          userId: 'admin-123',
+          createdAt: new Date('2024-01-02'),
+          updatedAt: new Date('2024-01-02'),
+          user: {
+            id: 'admin-123',
+            username: 'admin',
+            email: 'admin@example.com',
+            isAdmin: true,
+          },
+        },
+      ];
+
+      mockTicketsService.getAdminComments.mockResolvedValue(mockComments);
+
+      const result = await controller.getComments(ticketId);
+
+      expect(result).toEqual(mockComments);
+      expect(mockTicketsService.getAdminComments).toHaveBeenCalledWith(
         ticketId,
       );
     });
