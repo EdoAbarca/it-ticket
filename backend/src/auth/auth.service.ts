@@ -1,11 +1,20 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   async register(registerDto: RegisterDto) {
     const { username, email, password } = registerDto;
@@ -46,6 +55,44 @@ export class AuthService {
 
     return {
       message: 'User registered successfully',
+      user: userWithoutPassword,
+    };
+  }
+
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate JWT token
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
+    const accessToken = this.jwtService.sign(payload);
+
+    // Remove password from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Login successful',
+      accessToken,
       user: userWithoutPassword,
     };
   }
