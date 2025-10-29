@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
 import { ticketService, API_BASE_URL } from '../services/api';
+import CommentSection from '../components/CommentSection';
 
 const TicketDetail = () => {
   const navigate = useNavigate();
@@ -282,6 +283,9 @@ const TicketDetail = () => {
               </ul>
             </div>
           </div>
+
+          {/* Comment Section */}
+          <CommentSection ticketId={id} />
 
           {/* Action Buttons */}
           <div className="px-4 py-4 sm:px-6 border-t border-gray-200 flex justify-between">

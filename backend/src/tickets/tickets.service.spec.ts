@@ -20,6 +20,10 @@ describe('TicketsService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
     },
+    comment: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -401,6 +405,173 @@ describe('TicketsService', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('createComment', () => {
+    const ticketId = 'ticket-123';
+    const userId = 'user-123';
+    const content = 'This is a test comment';
+
+    const mockTicket = {
+      id: ticketId,
+      userId,
+      title: 'Test Ticket',
+      description: 'Test Description',
+      priority: Priority.MEDIUM,
+      status: Status.OPEN,
+      imageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockComment = {
+      id: 'comment-123',
+      content,
+      ticketId,
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: {
+        id: userId,
+        username: 'testuser',
+        email: 'test@example.com',
+      },
+    };
+
+    it('should successfully create a comment', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.create.mockResolvedValue(mockComment);
+
+      const result = await service.createComment(ticketId, content, userId);
+
+      expect(result).toEqual({
+        message: 'Comment created successfully',
+        comment: mockComment,
+      });
+      expect(mockPrismaService.comment.create).toHaveBeenCalledWith({
+        data: {
+          content,
+          ticketId,
+          userId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      });
+    });
+
+    it('should throw NotFoundException if ticket not found', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createComment(ticketId, content, userId),
+      ).rejects.toThrow(
+        'Ticket not found or you do not have permission to comment on it',
+      );
+    });
+
+    it('should throw NotFoundException if user does not own the ticket', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createComment(ticketId, content, userId),
+      ).rejects.toThrow(
+        'Ticket not found or you do not have permission to comment on it',
+      );
+    });
+  });
+
+  describe('getComments', () => {
+    const ticketId = 'ticket-123';
+    const userId = 'user-123';
+
+    const mockTicket = {
+      id: ticketId,
+      userId,
+      title: 'Test Ticket',
+      description: 'Test Description',
+      priority: Priority.MEDIUM,
+      status: Status.OPEN,
+      imageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockComments = [
+      {
+        id: 'comment-1',
+        content: 'First comment',
+        ticketId,
+        userId,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        user: {
+          id: userId,
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      },
+      {
+        id: 'comment-2',
+        content: 'Second comment',
+        ticketId,
+        userId,
+        createdAt: new Date('2024-01-02'),
+        updatedAt: new Date('2024-01-02'),
+        user: {
+          id: userId,
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      },
+    ];
+
+    it('should successfully retrieve comments in chronological order', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.findMany.mockResolvedValue(mockComments);
+
+      const result = await service.getComments(ticketId, userId);
+
+      expect(result).toEqual(mockComments);
+      expect(mockPrismaService.comment.findMany).toHaveBeenCalledWith({
+        where: { ticketId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+    });
+
+    it('should throw NotFoundException if ticket not found', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(null);
+
+      await expect(service.getComments(ticketId, userId)).rejects.toThrow(
+        'Ticket not found or you do not have permission to view comments',
+      );
+    });
+
+    it('should return empty array if no comments exist', async () => {
+      mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.findMany.mockResolvedValue([]);
+
+      const result = await service.getComments(ticketId, userId);
+
+      expect(result).toEqual([]);
     });
   });
 });

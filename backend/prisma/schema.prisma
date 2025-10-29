@@ -24,6 +24,7 @@ model User {
   passwordResetTokens  PasswordResetToken[]
   tickets              Ticket[]
   statusChanges        TicketStatusHistory[]
+  comments             Comment[]
 }
 
 model PasswordResetToken {
@@ -62,6 +63,7 @@ model Ticket {
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
   statusHistory TicketStatusHistory[]
+  comments      Comment[]
 }
 
 model TicketStatusHistory {
@@ -73,4 +75,15 @@ model TicketStatusHistory {
   changedById String
   changedBy   User     @relation(fields: [changedById], references: [id])
   createdAt   DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
