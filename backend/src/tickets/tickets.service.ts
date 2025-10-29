@@ -304,4 +304,77 @@ export class TicketsService {
       history,
     };
   }
+
+  // Comment methods
+  async createComment(ticketId: string, content: string, userId: string) {
+    // Verify that the ticket exists and belongs to the user
+    const ticket = await this.prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        userId,
+      },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException(
+        'Ticket not found or you do not have permission to comment on it',
+      );
+    }
+
+    const comment = await this.prisma.comment.create({
+      data: {
+        content,
+        ticketId,
+        userId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: 'Comment created successfully',
+      comment,
+    };
+  }
+
+  async getComments(ticketId: string, userId: string) {
+    // Verify that the ticket exists and belongs to the user
+    const ticket = await this.prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        userId,
+      },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException(
+        'Ticket not found or you do not have permission to view comments',
+      );
+    }
+
+    const comments = await this.prisma.comment.findMany({
+      where: { ticketId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return comments;
+  }
 }

@@ -17,6 +17,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -81,5 +82,29 @@ export class TicketsController {
   findOne(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     const userId = req.user.id;
     return this.ticketsService.findOne(id, userId);
+  }
+
+  @Post(':id/comments')
+  createComment(
+    @Param('id') ticketId: string,
+    @Body(new ValidationPipe({ whitelist: true }))
+    createCommentDto: CreateCommentDto,
+    @Request() req: { user: { id: string } },
+  ) {
+    const userId = req.user.id;
+    return this.ticketsService.createComment(
+      ticketId,
+      createCommentDto.content,
+      userId,
+    );
+  }
+
+  @Get(':id/comments')
+  getComments(
+    @Param('id') ticketId: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    const userId = req.user.id;
+    return this.ticketsService.getComments(ticketId, userId);
   }
 }

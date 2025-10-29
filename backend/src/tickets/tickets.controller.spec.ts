@@ -11,6 +11,8 @@ describe('TicketsController', () => {
     create: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
+    createComment: jest.fn(),
+    getComments: jest.fn(),
   };
 
   const mockJwtAuthGuard = {
@@ -159,6 +161,100 @@ describe('TicketsController', () => {
       await controller.findAll(query, mockRequest as any);
 
       expect(mockTicketsService.findAll).toHaveBeenCalledWith(userId, query);
+    });
+  });
+
+  describe('createComment', () => {
+    const ticketId = 'ticket-123';
+    const userId = 'user-123';
+    const createCommentDto = { content: 'This is a test comment' };
+
+    const mockRequest = {
+      user: { id: userId },
+    };
+
+    const mockResponse = {
+      message: 'Comment created successfully',
+      comment: {
+        id: 'comment-123',
+        content: createCommentDto.content,
+        ticketId,
+        userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: {
+          id: userId,
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      },
+    };
+
+    it('should successfully create a comment', async () => {
+      mockTicketsService.createComment.mockResolvedValue(mockResponse);
+
+      const result = await controller.createComment(
+        ticketId,
+        createCommentDto,
+        mockRequest as any,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.createComment).toHaveBeenCalledWith(
+        ticketId,
+        createCommentDto.content,
+        userId,
+      );
+    });
+  });
+
+  describe('getComments', () => {
+    const ticketId = 'ticket-123';
+    const userId = 'user-123';
+
+    const mockRequest = {
+      user: { id: userId },
+    };
+
+    const mockComments = [
+      {
+        id: 'comment-1',
+        content: 'First comment',
+        ticketId,
+        userId,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        user: {
+          id: userId,
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      },
+      {
+        id: 'comment-2',
+        content: 'Second comment',
+        ticketId,
+        userId,
+        createdAt: new Date('2024-01-02'),
+        updatedAt: new Date('2024-01-02'),
+        user: {
+          id: userId,
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      },
+    ];
+
+    it('should return comments for a ticket', async () => {
+      mockTicketsService.getComments.mockResolvedValue(mockComments);
+
+      const result = await controller.getComments(ticketId, mockRequest as any);
+
+      expect(result).toEqual(mockComments);
+      expect(mockTicketsService.getComments).toHaveBeenCalledWith(
+        ticketId,
+        userId,
+      );
     });
   });
 });
