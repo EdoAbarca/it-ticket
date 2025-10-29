@@ -497,4 +497,49 @@ export class TicketsService {
       message: 'Ticket deleted successfully',
     };
   }
+
+  // Admin comment CRUD methods
+  async updateComment(commentId: string, content: string) {
+    try {
+      // Update the comment directly - Prisma will throw if not found
+      const updatedComment = await this.prisma.comment.update({
+        where: { id: commentId },
+        data: { content },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              isAdmin: true,
+            },
+          },
+        },
+      });
+
+      return {
+        message: 'Comment updated successfully',
+        comment: updatedComment,
+      };
+    } catch (error) {
+      // Prisma throws P2025 when record is not found
+      throw new NotFoundException('Comment not found');
+    }
+  }
+
+  async deleteComment(commentId: string) {
+    try {
+      // Delete the comment directly - Prisma will throw if not found
+      await this.prisma.comment.delete({
+        where: { id: commentId },
+      });
+
+      return {
+        message: 'Comment deleted successfully',
+      };
+    } catch (error) {
+      // Prisma throws P2025 when record is not found
+      throw new NotFoundException('Comment not found');
+    }
+  }
 }

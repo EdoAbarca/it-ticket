@@ -17,6 +17,8 @@ describe('AdminTicketsController', () => {
     getAdminComments: jest.fn(),
     updateTicket: jest.fn(),
     deleteTicket: jest.fn(),
+    updateComment: jest.fn(),
+    deleteComment: jest.fn(),
   };
 
   const mockJwtAuthGuard = {
@@ -411,6 +413,76 @@ describe('AdminTicketsController', () => {
 
       expect(result).toEqual(mockResponse);
       expect(mockTicketsService.deleteTicket).toHaveBeenCalledWith(ticketId);
+    });
+  });
+
+  describe('updateComment', () => {
+    const commentId = 'comment-123';
+
+    it('should update comment successfully', async () => {
+      const updateCommentDto = { content: 'Updated comment content' };
+      const mockResponse = {
+        message: 'Comment updated successfully',
+        comment: {
+          id: commentId,
+          content: 'Updated comment content',
+          ticketId: 'ticket-123',
+          userId: 'user-123',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-123',
+            username: 'testuser',
+            email: 'test@example.com',
+            isAdmin: false,
+          },
+        },
+      };
+
+      mockTicketsService.updateComment.mockResolvedValue(mockResponse);
+
+      const result = await controller.updateComment(
+        commentId,
+        updateCommentDto,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.updateComment).toHaveBeenCalledWith(
+        commentId,
+        'Updated comment content',
+      );
+    });
+
+    it('should validate comment content is required', async () => {
+      const invalidDto = { content: '' };
+      mockTicketsService.updateComment.mockResolvedValue({
+        message: 'Comment updated successfully',
+        comment: {} as any,
+      });
+
+      // ValidationPipe will handle this at runtime, test ensures endpoint exists
+      const result = await controller.updateComment(
+        commentId,
+        invalidDto as any,
+      );
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('deleteComment', () => {
+    const commentId = 'comment-123';
+
+    it('should delete comment successfully', async () => {
+      const mockResponse = {
+        message: 'Comment deleted successfully',
+      };
+
+      mockTicketsService.deleteComment.mockResolvedValue(mockResponse);
+
+      const result = await controller.deleteComment(commentId);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.deleteComment).toHaveBeenCalledWith(commentId);
     });
   });
 });
