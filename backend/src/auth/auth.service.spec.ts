@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -15,6 +17,10 @@ describe('AuthService', () => {
     },
   };
 
+  const mockJwtService = {
+    sign: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +28,10 @@ describe('AuthService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
         },
       ],
     }).compile();
@@ -161,6 +171,117 @@ describe('AuthService', () => {
       expect(result.user).not.toHaveProperty('password');
       expect(result.user).toHaveProperty('username');
       expect(result.user).toHaveProperty('email');
+    });
+  });
+
+  describe('login', () => {
+    const loginDto = {
+      email: 'test@example.com',
+      password: 'Test@1234',
+    };
+
+    const mockUser = {
+      id: '1',
+      username: 'testuser',
+      email: loginDto.email,
+      password: 'hashedPassword123',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should successfully login a user with valid credentials', async () => {
+      const accessToken = 'jwt-token-123';
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValue(accessToken);
+
+      const result = await service.login(loginDto);
+
+      expect(result).toEqual({
+        message: 'Login successful',
+        accessToken,
+        user: {
+          id: mockUser.id,
+          username: mockUser.username,
+          email: mockUser.email,
+          createdAt: mockUser.createdAt,
+          updatedAt: mockUser.updatedAt,
+        },
+      });
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { email: loginDto.email },
+      });
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        loginDto.password,
+        mockUser.password,
+      );
+      expect(mockJwtService.sign).toHaveBeenCalledWith({
+        sub: mockUser.id,
+        email: mockUser.email,
+        username: mockUser.username,
+      });
+    });
+
+    it('should throw UnauthorizedException if user not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow(
+        'Invalid credentials',
+      );
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { email: loginDto.email },
+      });
+    });
+
+    it('should throw UnauthorizedException if password is invalid', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow(
+        'Invalid credentials',
+      );
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        loginDto.password,
+        mockUser.password,
+      );
+    });
+
+    it('should not return password in response', async () => {
+      const accessToken = 'jwt-token-123';
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValue(accessToken);
+
+      const result = await service.login(loginDto);
+
+      expect(result.user).not.toHaveProperty('password');
+      expect(result.user).toHaveProperty('username');
+      expect(result.user).toHaveProperty('email');
+      expect(result.user).toHaveProperty('id');
+    });
+
+    it('should generate JWT token with correct payload', async () => {
+      const accessToken = 'jwt-token-123';
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValue(accessToken);
+
+      await service.login(loginDto);
+
+      expect(mockJwtService.sign).toHaveBeenCalledWith({
+        sub: mockUser.id,
+        email: mockUser.email,
+        username: mockUser.username,
+      });
     });
   });
 });
