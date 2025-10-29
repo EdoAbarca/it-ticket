@@ -18,10 +18,12 @@ model User {
   username             String                @unique
   email                String                @unique
   password             String
+  isAdmin              Boolean               @default(false)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   passwordResetTokens  PasswordResetToken[]
   tickets              Ticket[]
+  statusChanges        TicketStatusHistory[]
 }
 
 model PasswordResetToken {
@@ -49,14 +51,26 @@ enum Status {
 }
 
 model Ticket {
+  id            String                @id @default(uuid())
+  title         String
+  description   String
+  priority      Priority              @default(MEDIUM)
+  status        Status                @default(OPEN)
+  imageUrl      String?
+  userId        String
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  statusHistory TicketStatusHistory[]
+}
+
+model TicketStatusHistory {
   id          String   @id @default(uuid())
-  title       String
-  description String
-  priority    Priority @default(MEDIUM)
-  status      Status   @default(OPEN)
-  imageUrl    String?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  oldStatus   Status
+  newStatus   Status
+  changedById String
+  changedBy   User     @relation(fields: [changedById], references: [id])
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TicketsService } from './tickets.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../auth/email.service';
 import { Priority, Status } from '@prisma/client';
 
 describe('TicketsService', () => {
@@ -11,8 +12,19 @@ describe('TicketsService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
       count: jest.fn(),
     },
+    ticketStatusHistory: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  };
+
+  const mockEmailService = {
+    sendTicketStatusChangeEmail: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -22,6 +34,10 @@ describe('TicketsService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
         },
       ],
     }).compile();
