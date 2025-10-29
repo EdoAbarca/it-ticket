@@ -142,10 +142,27 @@ enum Status {
 4. Input validation using class-validator decorators
 5. No vulnerabilities detected by CodeQL scanner
 
+## Admin Features
+
+### Admin Comment on Any Ticket (US-11)
+Admins have the ability to comment on any ticket in the system, regardless of ownership. This enables support staff to provide direct assistance to users.
+
+**Admin Endpoints:**
+- `POST /admin/tickets/:id/comments` - Create comment on any ticket
+- `GET /admin/tickets/:id/comments` - View all comments on any ticket
+
+**Security:**
+- Protected by JWT authentication + AdminGuard
+- Only users with `isAdmin: true` can access admin endpoints
+- Comments include user information with isAdmin flag for identification
+
+**Testing:**
+- 7 new tests added for admin comment functionality
+- All tests passing (75 total)
+- Test coverage maintained above 80%
+
 ## Future Enhancements
 - Add e2e tests for ticket creation flow
 - Implement ticket update and delete functionality
 - Add ticket assignment to support staff
-- Implement ticket status transitions
-- Add comments/notes to tickets
-- Email notifications for ticket creation
+- Email notifications for ticket creation and comments
