@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
-import { authService, ticketService } from '../services/api';
+import { authService, ticketService, API_BASE_URL } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,16 +52,6 @@ const Dashboard = () => {
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, page: newPage }));
-  };
-
-  const handleSortChange = (newSortBy) => {
-    if (sortBy === newSortBy) {
-      // Toggle sort order if clicking same column
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSortBy);
-      setSortOrder('desc');
-    }
   };
 
   const handleFilterChange = (type, value) => {
@@ -325,7 +315,10 @@ const Dashboard = () => {
               <ul className="divide-y divide-gray-200">
                 {tickets.map((ticket) => (
                   <li key={ticket.id}>
-                    <div className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                    <button
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      className="w-full text-left px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors duration-150"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-gray-900">{ticket.title}</h3>
@@ -349,14 +342,29 @@ const Dashboard = () => {
                         {ticket.imageUrl && (
                           <div className="ml-4 flex-shrink-0">
                             <img
-                              src={`http://localhost:3000${ticket.imageUrl}`}
+                              src={`${API_BASE_URL}${ticket.imageUrl}`}
                               alt="Ticket attachment"
                               className="h-20 w-20 object-cover rounded"
                             />
                           </div>
                         )}
+                        <div className="ml-4 flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
                       </div>
-                    </div>
+                    </button>
                   </li>
                 ))}
               </ul>
