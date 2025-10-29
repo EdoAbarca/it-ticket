@@ -54,16 +54,6 @@ const Dashboard = () => {
     setPagination(prev => ({ ...prev, page: newPage }));
   };
 
-  const handleSortChange = (newSortBy) => {
-    if (sortBy === newSortBy) {
-      // Toggle sort order if clicking same column
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSortBy);
-      setSortOrder('desc');
-    }
-  };
-
   const handleFilterChange = (type, value) => {
     setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
     if (type === 'status') {
@@ -325,7 +315,10 @@ const Dashboard = () => {
               <ul className="divide-y divide-gray-200">
                 {tickets.map((ticket) => (
                   <li key={ticket.id}>
-                    <div className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                    <button
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      className="w-full text-left px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors duration-150"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-gray-900">{ticket.title}</h3>
@@ -355,8 +348,23 @@ const Dashboard = () => {
                             />
                           </div>
                         )}
+                        <div className="ml-4 flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
                       </div>
-                    </div>
+                    </button>
                   </li>
                 ))}
               </ul>

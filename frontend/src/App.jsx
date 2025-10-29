@@ -8,6 +8,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import CreateTicket from './pages/CreateTicket';
+import TicketDetail from './pages/TicketDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreateTicket />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tickets/:id" 
+            element={
+              <ProtectedRoute>
+                <TicketDetail />
               </ProtectedRoute>
             } 
           />
