@@ -120,8 +120,21 @@ export const ticketService = {
     return data;
   },
 
-  async getTickets(token) {
-    const response = await fetch(`${API_BASE_URL}/tickets`, {
+  async getTickets(token, params = {}) {
+    const queryParams = new URLSearchParams();
+    
+    // Add query parameters if they exist
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const queryString = queryParams.toString();
+    const url = `${API_BASE_URL}/tickets${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

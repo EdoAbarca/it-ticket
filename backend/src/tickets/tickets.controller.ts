@@ -10,12 +10,14 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('tickets')
@@ -67,9 +69,12 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(@Request() req: { user: { id: string } }) {
+  findAll(
+    @Query(new ValidationPipe({ transform: true })) query: GetTicketsQueryDto,
+    @Request() req: { user: { id: string } },
+  ) {
     const userId = req.user.id;
-    return this.ticketsService.findAll(userId);
+    return this.ticketsService.findAll(userId, query);
   }
 
   @Get(':id')

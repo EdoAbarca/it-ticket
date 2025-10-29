@@ -11,6 +11,7 @@ describe('TicketsService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -169,12 +170,26 @@ describe('TicketsService', () => {
       },
     ];
 
-    it('should return all tickets for a user', async () => {
+    it('should return all tickets for a user with pagination', async () => {
       mockPrismaService.ticket.findMany.mockResolvedValue(mockTickets);
+      mockPrismaService.ticket.count.mockResolvedValue(2);
 
-      const result = await service.findAll(userId);
+      const query = {
+        sortBy: 'createdAt' as any,
+        sortOrder: 'desc' as any,
+        page: 1,
+        limit: 10,
+      };
 
-      expect(result).toEqual(mockTickets);
+      const result = await service.findAll(userId, query);
+
+      expect(result.tickets).toEqual(mockTickets);
+      expect(result.pagination).toEqual({
+        total: 2,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
       expect(mockPrismaService.ticket.findMany).toHaveBeenCalledWith({
         where: { userId },
         include: {
@@ -189,29 +204,119 @@ describe('TicketsService', () => {
         orderBy: {
           createdAt: 'desc',
         },
+        skip: 0,
+        take: 10,
       });
     });
 
-    it('should return tickets ordered by creation date descending', async () => {
-      mockPrismaService.ticket.findMany.mockResolvedValue(mockTickets);
+    it('should filter tickets by status', async () => {
+      const openTickets = [mockTickets[0]];
+      mockPrismaService.ticket.findMany.mockResolvedValue(openTickets);
+      mockPrismaService.ticket.count.mockResolvedValue(1);
 
-      await service.findAll(userId);
+      const query = {
+        sortBy: 'createdAt' as any,
+        sortOrder: 'desc' as any,
+        status: Status.OPEN,
+        page: 1,
+        limit: 10,
+      };
+
+      await service.findAll(userId, query);
+
+      expect(mockPrismaService.ticket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId, status: Status.OPEN },
+        }),
+      );
+    });
+
+    it('should filter tickets by priority', async () => {
+      const highPriorityTickets = [mockTickets[0]];
+      mockPrismaService.ticket.findMany.mockResolvedValue(highPriorityTickets);
+      mockPrismaService.ticket.count.mockResolvedValue(1);
+
+      const query = {
+        sortBy: 'createdAt' as any,
+        sortOrder: 'desc' as any,
+        priority: Priority.HIGH,
+        page: 1,
+        limit: 10,
+      };
+
+      await service.findAll(userId, query);
+
+      expect(mockPrismaService.ticket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId, priority: Priority.HIGH },
+        }),
+      );
+    });
+
+    it('should sort tickets by priority', async () => {
+      mockPrismaService.ticket.findMany.mockResolvedValue(mockTickets);
+      mockPrismaService.ticket.count.mockResolvedValue(2);
+
+      const query = {
+        sortBy: 'priority' as any,
+        sortOrder: 'asc' as any,
+        page: 1,
+        limit: 10,
+      };
+
+      await service.findAll(userId, query);
 
       expect(mockPrismaService.ticket.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           orderBy: {
-            createdAt: 'desc',
+            priority: 'asc',
           },
+        }),
+      );
+    });
+
+    it('should handle pagination correctly', async () => {
+      mockPrismaService.ticket.findMany.mockResolvedValue([mockTickets[1]]);
+      mockPrismaService.ticket.count.mockResolvedValue(2);
+
+      const query = {
+        sortBy: 'createdAt' as any,
+        sortOrder: 'desc' as any,
+        page: 2,
+        limit: 1,
+      };
+
+      const result = await service.findAll(userId, query);
+
+      expect(result.pagination).toEqual({
+        total: 2,
+        page: 2,
+        limit: 1,
+        totalPages: 2,
+      });
+      expect(mockPrismaService.ticket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 1,
+          take: 1,
         }),
       );
     });
 
     it('should return empty array if user has no tickets', async () => {
       mockPrismaService.ticket.findMany.mockResolvedValue([]);
+      mockPrismaService.ticket.count.mockResolvedValue(0);
 
-      const result = await service.findAll(userId);
+      const query = {
+        sortBy: 'createdAt' as any,
+        sortOrder: 'desc' as any,
+        page: 1,
+        limit: 10,
+      };
 
-      expect(result).toEqual([]);
+      const result = await service.findAll(userId, query);
+
+      expect(result.tickets).toEqual([]);
+      expect(result.pagination.total).toBe(0);
     });
   });
 

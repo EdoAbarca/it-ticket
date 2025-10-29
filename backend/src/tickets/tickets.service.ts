@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 
 @Injectable()
 export class TicketsService {
@@ -29,22 +30,61 @@ export class TicketsService {
     };
   }
 
-  async findAll(userId: string) {
-    return this.prisma.ticket.findMany({
-      where: { userId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
+  async findAll(userId: string, query: GetTicketsQueryDto) {
+    const {
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      status,
+      priority,
+      page = 1,
+      limit = 10,
+    } = query;
+
+    // Build where clause
+    const where: any = { userId };
+    if (status) {
+      where.status = status;
+    }
+    if (priority) {
+      where.priority = priority;
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Build orderBy clause
+    const orderBy: any = {};
+    orderBy[sortBy] = sortOrder;
+
+    // Fetch tickets with filters, sorting, and pagination
+    const [tickets, total] = await Promise.all([
+      this.prisma.ticket.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
           },
         },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prisma.ticket.count({ where }),
+    ]);
+
+    return {
+      tickets,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    };
   }
 
   async findOne(id: string, userId: string) {
