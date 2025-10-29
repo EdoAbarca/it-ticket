@@ -161,6 +161,74 @@ Admins have the ability to comment on any ticket in the system, regardless of ow
 - All tests passing (75 total)
 - Test coverage maintained above 80%
 
+### Admin User Management (US-12)
+Admins have full CRUD capabilities to manage user accounts in the system. This enables admins to create new users, update existing users, view user details, and delete users as needed.
+
+**Admin Endpoints:**
+- `GET /admin/users` - List all users with pagination and sorting
+  - Query parameters: `page` (default: 1), `limit` (default: 10, max: 100), `sortBy` (default: createdAt), `order` (asc/desc, default: desc)
+  - Returns paginated list of users with metadata
+- `GET /admin/users/:id` - Get specific user by ID
+  - Returns user details including ticket and comment counts
+- `POST /admin/users` - Create a new user
+  - Required: username, email, password (min 6 chars)
+  - Optional: isAdmin (default: false)
+  - Password is automatically hashed with bcrypt
+- `PATCH /admin/users/:id` - Update existing user
+  - All fields optional: username, email, password, isAdmin
+  - Validates uniqueness of username and email
+  - Password is automatically hashed if provided
+- `DELETE /admin/users/:id` - Delete a user
+  - Cascade deletes related tickets, comments, etc.
+
+**Security:**
+- Protected by JWT authentication + AdminGuard
+- Only users with `isAdmin: true` can access admin endpoints
+- Passwords never returned in API responses
+- Input validation using class-validator decorators
+- Duplicate email/username detection
+- No security vulnerabilities detected by CodeQL scanner
+
+**Validation:**
+- Username and email uniqueness enforced
+- Email format validation
+- Password minimum length: 6 characters
+- Pagination limits: page > 0, limit between 1-100
+- Sort fields limited to: createdAt, username, email
+
+**Testing:**
+- 23 unit tests covering all CRUD operations
+- Test coverage: 91.66% for users module
+- Edge cases tested: duplicates, not found, invalid pagination
+- All tests passing
+
+**Example Requests:**
+
+List users with pagination:
+```
+GET /admin/users?page=1&limit=10&sortBy=createdAt&order=desc
+```
+
+Create a new user:
+```json
+POST /admin/users
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "securepass123",
+  "isAdmin": false
+}
+```
+
+Update user:
+```json
+PATCH /admin/users/:id
+{
+  "email": "newemail@example.com",
+  "isAdmin": true
+}
+```
+
 ## Future Enhancements
 - Add e2e tests for ticket creation flow
 - Implement ticket update and delete functionality
