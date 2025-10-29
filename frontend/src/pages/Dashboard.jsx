@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
-import { authService, ticketService } from '../services/api';
+import { authService, ticketService, API_BASE_URL } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -342,7 +342,7 @@ const Dashboard = () => {
                         {ticket.imageUrl && (
                           <div className="ml-4 flex-shrink-0">
                             <img
-                              src={`http://localhost:3000${ticket.imageUrl}`}
+                              src={`${API_BASE_URL}${ticket.imageUrl}`}
                               alt="Ticket attachment"
                               className="h-20 w-20 object-cover rounded"
                             />

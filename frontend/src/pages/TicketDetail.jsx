@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
-import { ticketService } from '../services/api';
+import { ticketService, API_BASE_URL } from '../services/api';
 
 const TicketDetail = () => {
   const navigate = useNavigate();
@@ -201,7 +201,7 @@ const TicketDetail = () => {
                   </dt>
                   <dd className="mt-1">
                     <img
-                      src={`http://localhost:3000${ticket.imageUrl}`}
+                      src={`${API_BASE_URL}${ticket.imageUrl}`}
                       alt="Ticket attachment"
                       className="max-w-full h-auto rounded-lg shadow-md"
                       style={{ maxHeight: '500px' }}
