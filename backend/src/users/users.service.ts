@@ -171,7 +171,12 @@ export class UsersService {
     }
 
     // Prepare update data
-    const updateData: any = {};
+    const updateData: {
+      username?: string;
+      email?: string;
+      password?: string;
+      isAdmin?: boolean;
+    } = {};
 
     if (updateUserDto.username) {
       updateData.username = updateUserDto.username;
