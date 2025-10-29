@@ -500,54 +500,46 @@ export class TicketsService {
 
   // Admin comment CRUD methods
   async updateComment(commentId: string, content: string) {
-    // Check if comment exists
-    const comment = await this.prisma.comment.findUnique({
-      where: { id: commentId },
-    });
-
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    // Update the comment
-    const updatedComment = await this.prisma.comment.update({
-      where: { id: commentId },
-      data: { content },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            isAdmin: true,
+    try {
+      // Update the comment directly - Prisma will throw if not found
+      const updatedComment = await this.prisma.comment.update({
+        where: { id: commentId },
+        data: { content },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              isAdmin: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return {
-      message: 'Comment updated successfully',
-      comment: updatedComment,
-    };
+      return {
+        message: 'Comment updated successfully',
+        comment: updatedComment,
+      };
+    } catch (error) {
+      // Prisma throws P2025 when record is not found
+      throw new NotFoundException('Comment not found');
+    }
   }
 
   async deleteComment(commentId: string) {
-    // Check if comment exists
-    const comment = await this.prisma.comment.findUnique({
-      where: { id: commentId },
-    });
+    try {
+      // Delete the comment directly - Prisma will throw if not found
+      await this.prisma.comment.delete({
+        where: { id: commentId },
+      });
 
-    if (!comment) {
+      return {
+        message: 'Comment deleted successfully',
+      };
+    } catch (error) {
+      // Prisma throws P2025 when record is not found
       throw new NotFoundException('Comment not found');
     }
-
-    // Delete the comment
-    await this.prisma.comment.delete({
-      where: { id: commentId },
-    });
-
-    return {
-      message: 'Comment deleted successfully',
-    };
   }
 }

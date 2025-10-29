@@ -907,18 +907,13 @@ describe('TicketsService', () => {
     const newContent = 'Updated comment content';
 
     it('should successfully update a comment', async () => {
-      const mockComment = {
+      const mockUpdatedComment = {
         id: commentId,
-        content: 'Original content',
+        content: newContent,
         ticketId: 'ticket-123',
         userId: 'user-123',
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
-
-      const mockUpdatedComment = {
-        ...mockComment,
-        content: newContent,
         user: {
           id: 'user-123',
           username: 'testuser',
@@ -927,7 +922,6 @@ describe('TicketsService', () => {
         },
       };
 
-      mockPrismaService.comment.findUnique.mockResolvedValue(mockComment);
       mockPrismaService.comment.update.mockResolvedValue(mockUpdatedComment);
 
       const result = await service.updateComment(commentId, newContent);
@@ -935,9 +929,6 @@ describe('TicketsService', () => {
       expect(result).toEqual({
         message: 'Comment updated successfully',
         comment: mockUpdatedComment,
-      });
-      expect(mockPrismaService.comment.findUnique).toHaveBeenCalledWith({
-        where: { id: commentId },
       });
       expect(mockPrismaService.comment.update).toHaveBeenCalledWith({
         where: { id: commentId },
@@ -956,12 +947,11 @@ describe('TicketsService', () => {
     });
 
     it('should throw NotFoundException if comment does not exist', async () => {
-      mockPrismaService.comment.findUnique.mockResolvedValue(null);
+      mockPrismaService.comment.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(
         service.updateComment(commentId, newContent),
       ).rejects.toThrow('Comment not found');
-      expect(mockPrismaService.comment.update).not.toHaveBeenCalled();
     });
   });
 
@@ -978,7 +968,6 @@ describe('TicketsService', () => {
         updatedAt: new Date(),
       };
 
-      mockPrismaService.comment.findUnique.mockResolvedValue(mockComment);
       mockPrismaService.comment.delete.mockResolvedValue(mockComment);
 
       const result = await service.deleteComment(commentId);
@@ -986,21 +975,17 @@ describe('TicketsService', () => {
       expect(result).toEqual({
         message: 'Comment deleted successfully',
       });
-      expect(mockPrismaService.comment.findUnique).toHaveBeenCalledWith({
-        where: { id: commentId },
-      });
       expect(mockPrismaService.comment.delete).toHaveBeenCalledWith({
         where: { id: commentId },
       });
     });
 
     it('should throw NotFoundException if comment does not exist', async () => {
-      mockPrismaService.comment.findUnique.mockResolvedValue(null);
+      mockPrismaService.comment.delete.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.deleteComment(commentId)).rejects.toThrow(
         'Comment not found',
       );
-      expect(mockPrismaService.comment.delete).not.toHaveBeenCalled();
     });
   });
 });
