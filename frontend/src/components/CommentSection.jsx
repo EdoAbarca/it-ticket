@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import DOMPurify from 'dompurify';
 import { toast } from 'react-toastify';
 import { ticketService } from '../services/api';
 import useAuthStore from '../store/authStore';
@@ -65,11 +64,6 @@ const CommentSection = ({ ticketId }) => {
     });
   };
 
-  // Sanitize markdown content to prevent XSS
-  const sanitizeMarkdown = (content) => {
-    return DOMPurify.sanitize(content);
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -117,13 +111,12 @@ const CommentSection = ({ ticketId }) => {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // Customize rendering to add security
-                    // eslint-disable-next-line no-unused-vars
-                    a: ({node, ...props}) => (
+                    a: ({...props}) => (
                       <a {...props} target="_blank" rel="noopener noreferrer" />
                     ),
                   }}
                 >
-                  {sanitizeMarkdown(newComment)}
+                  {newComment}
                 </ReactMarkdown>
               ) : (
                 <p className="text-gray-400 italic">Nothing to preview</p>
@@ -219,13 +212,12 @@ const CommentSection = ({ ticketId }) => {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // Customize rendering to add security
-                    // eslint-disable-next-line no-unused-vars
-                    a: ({node, ...props}) => (
+                    a: ({...props}) => (
                       <a {...props} target="_blank" rel="noopener noreferrer" />
                     ),
                   }}
                 >
-                  {sanitizeMarkdown(comment.content)}
+                  {comment.content}
                 </ReactMarkdown>
               </div>
             </div>
