@@ -54,4 +54,40 @@ export const authService = {
 
     return data;
   },
+
+  async requestPasswordReset(email) {
+    const response = await fetch(`${API_BASE_URL}/auth/request-password-reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Password reset request failed');
+    }
+
+    return data;
+  },
+
+  async resetPassword(token, newPassword) {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Password reset failed');
+    }
+
+    return data;
+  },
 };
