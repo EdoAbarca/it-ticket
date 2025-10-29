@@ -436,6 +436,7 @@ describe('TicketsService', () => {
         id: userId,
         username: 'testuser',
         email: 'test@example.com',
+        isAdmin: false,
       },
     };
 
@@ -461,6 +462,7 @@ describe('TicketsService', () => {
               id: true,
               username: true,
               email: true,
+              isAdmin: true,
             },
           },
         },
@@ -516,6 +518,7 @@ describe('TicketsService', () => {
           id: userId,
           username: 'testuser',
           email: 'test@example.com',
+          isAdmin: false,
         },
       },
       {
@@ -529,6 +532,7 @@ describe('TicketsService', () => {
           id: userId,
           username: 'testuser',
           email: 'test@example.com',
+          isAdmin: false,
         },
       },
     ];
@@ -548,6 +552,7 @@ describe('TicketsService', () => {
               id: true,
               username: true,
               email: true,
+              isAdmin: true,
             },
           },
         },
@@ -570,6 +575,175 @@ describe('TicketsService', () => {
       mockPrismaService.comment.findMany.mockResolvedValue([]);
 
       const result = await service.getComments(ticketId, userId);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('createAdminComment', () => {
+    const ticketId = 'ticket-123';
+    const adminId = 'admin-123';
+    const content = 'Admin support response';
+
+    const mockTicket = {
+      id: ticketId,
+      userId: 'user-123',
+      title: 'Test Ticket',
+      description: 'Test Description',
+      priority: Priority.MEDIUM,
+      status: Status.OPEN,
+      imageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockComment = {
+      id: 'comment-123',
+      content,
+      ticketId,
+      userId: adminId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: {
+        id: adminId,
+        username: 'admin',
+        email: 'admin@example.com',
+        isAdmin: true,
+      },
+    };
+
+    it('should allow admin to comment on any ticket', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.create.mockResolvedValue(mockComment);
+
+      const result = await service.createAdminComment(
+        ticketId,
+        content,
+        adminId,
+      );
+
+      expect(result).toEqual({
+        message: 'Comment created successfully',
+        comment: mockComment,
+      });
+      expect(mockPrismaService.ticket.findUnique).toHaveBeenCalledWith({
+        where: { id: ticketId },
+      });
+      expect(mockPrismaService.comment.create).toHaveBeenCalledWith({
+        data: {
+          content,
+          ticketId,
+          userId: adminId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              isAdmin: true,
+            },
+          },
+        },
+      });
+    });
+
+    it('should throw NotFoundException if ticket does not exist', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createAdminComment(ticketId, content, adminId),
+      ).rejects.toThrow('Ticket not found');
+    });
+  });
+
+  describe('getAdminComments', () => {
+    const ticketId = 'ticket-123';
+
+    const mockTicket = {
+      id: ticketId,
+      userId: 'user-123',
+      title: 'Test Ticket',
+      description: 'Test Description',
+      priority: Priority.MEDIUM,
+      status: Status.OPEN,
+      imageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockComments = [
+      {
+        id: 'comment-1',
+        content: 'User comment',
+        ticketId,
+        userId: 'user-123',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        user: {
+          id: 'user-123',
+          username: 'testuser',
+          email: 'test@example.com',
+          isAdmin: false,
+        },
+      },
+      {
+        id: 'comment-2',
+        content: 'Admin response',
+        ticketId,
+        userId: 'admin-123',
+        createdAt: new Date('2024-01-02'),
+        updatedAt: new Date('2024-01-02'),
+        user: {
+          id: 'admin-123',
+          username: 'admin',
+          email: 'admin@example.com',
+          isAdmin: true,
+        },
+      },
+    ];
+
+    it('should allow admin to view comments on any ticket', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.findMany.mockResolvedValue(mockComments);
+
+      const result = await service.getAdminComments(ticketId);
+
+      expect(result).toEqual(mockComments);
+      expect(mockPrismaService.ticket.findUnique).toHaveBeenCalledWith({
+        where: { id: ticketId },
+      });
+      expect(mockPrismaService.comment.findMany).toHaveBeenCalledWith({
+        where: { ticketId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              isAdmin: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+    });
+
+    it('should throw NotFoundException if ticket does not exist', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(null);
+
+      await expect(service.getAdminComments(ticketId)).rejects.toThrow(
+        'Ticket not found',
+      );
+    });
+
+    it('should return empty array if no comments exist', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.findMany.mockResolvedValue([]);
+
+      const result = await service.getAdminComments(ticketId);
 
       expect(result).toEqual([]);
     });

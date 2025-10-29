@@ -333,6 +333,7 @@ export class TicketsService {
             id: true,
             username: true,
             email: true,
+            isAdmin: true,
           },
         },
       },
@@ -367,6 +368,72 @@ export class TicketsService {
             id: true,
             username: true,
             email: true,
+            isAdmin: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return comments;
+  }
+
+  // Admin comment methods
+  async createAdminComment(ticketId: string, content: string, adminId: string) {
+    // Verify that the ticket exists (no ownership check for admin)
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const comment = await this.prisma.comment.create({
+      data: {
+        content,
+        ticketId,
+        userId: adminId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            isAdmin: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: 'Comment created successfully',
+      comment,
+    };
+  }
+
+  async getAdminComments(ticketId: string) {
+    // Verify that the ticket exists (no ownership check for admin)
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const comments = await this.prisma.comment.findMany({
+      where: { ticketId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            isAdmin: true,
           },
         },
       },

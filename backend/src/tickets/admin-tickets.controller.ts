@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Param,
   Body,
   UseGuards,
@@ -15,6 +16,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { TicketsService } from '../tickets/tickets.service';
 import { UpdateTicketStatusDto } from '../tickets/dto/update-ticket-status.dto';
 import { GetTicketsQueryDto } from '../tickets/dto/get-tickets-query.dto';
+import { CreateCommentDto } from '../tickets/dto/create-comment.dto';
 
 @Controller('admin/tickets')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -55,5 +57,25 @@ export class AdminTicketsController {
   @Get(':id/history')
   getTicketStatusHistory(@Param('id') id: string) {
     return this.ticketsService.getTicketStatusHistory(id);
+  }
+
+  @Post(':id/comments')
+  createComment(
+    @Param('id') ticketId: string,
+    @Body(new ValidationPipe({ whitelist: true }))
+    createCommentDto: CreateCommentDto,
+    @Request() req: { user: { id: string } },
+  ) {
+    const adminId = req.user.id;
+    return this.ticketsService.createAdminComment(
+      ticketId,
+      createCommentDto.content,
+      adminId,
+    );
+  }
+
+  @Get(':id/comments')
+  getComments(@Param('id') ticketId: string) {
+    return this.ticketsService.getAdminComments(ticketId);
   }
 }
