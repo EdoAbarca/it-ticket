@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
+import CreateTicket from './pages/CreateTicket';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tickets/create" 
+            element={
+              <ProtectedRoute>
+                <CreateTicket />
               </ProtectedRoute>
             } 
           />
