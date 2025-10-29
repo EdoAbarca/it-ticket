@@ -14,6 +14,7 @@ describe('TicketsService', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
       count: jest.fn(),
     },
     ticketStatusHistory: {
@@ -746,6 +747,155 @@ describe('TicketsService', () => {
       const result = await service.getAdminComments(ticketId);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('updateTicket', () => {
+    const ticketId = 'ticket-123';
+    const updateTicketDto = {
+      title: 'Updated Title',
+      description: 'Updated Description',
+      priority: Priority.HIGH,
+    };
+
+    it('should update ticket successfully', async () => {
+      const mockTicket = {
+        id: ticketId,
+        title: 'Old Title',
+        description: 'Old Description',
+        priority: Priority.MEDIUM,
+        status: Status.OPEN,
+        imageUrl: null,
+        userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        ...mockTicket,
+        ...updateTicketDto,
+        updatedAt: new Date(),
+        user: {
+          id: 'user-123',
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      };
+
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.ticket.update.mockResolvedValue(mockUpdatedTicket);
+
+      const result = await service.updateTicket(ticketId, updateTicketDto);
+
+      expect(result).toEqual({
+        message: 'Ticket updated successfully',
+        ticket: mockUpdatedTicket,
+      });
+      expect(mockPrismaService.ticket.update).toHaveBeenCalledWith({
+        where: { id: ticketId },
+        data: updateTicketDto,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      });
+    });
+
+    it('should throw NotFoundException if ticket does not exist', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateTicket(ticketId, updateTicketDto),
+      ).rejects.toThrow('Ticket not found');
+    });
+
+    it('should update partial fields', async () => {
+      const partialUpdate = { title: 'New Title Only' };
+      const mockTicket = {
+        id: ticketId,
+        title: 'Old Title',
+        description: 'Description',
+        priority: Priority.MEDIUM,
+        status: Status.OPEN,
+        imageUrl: null,
+        userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        ...mockTicket,
+        title: 'New Title Only',
+        user: {
+          id: 'user-123',
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+      };
+
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.ticket.update.mockResolvedValue(mockUpdatedTicket);
+
+      const result = await service.updateTicket(ticketId, partialUpdate);
+
+      expect(result.ticket.title).toBe('New Title Only');
+      expect(mockPrismaService.ticket.update).toHaveBeenCalledWith({
+        where: { id: ticketId },
+        data: partialUpdate,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe('deleteTicket', () => {
+    const ticketId = 'ticket-123';
+
+    it('should delete ticket successfully', async () => {
+      const mockTicket = {
+        id: ticketId,
+        title: 'Test Ticket',
+        description: 'Test Description',
+        priority: Priority.MEDIUM,
+        status: Status.OPEN,
+        imageUrl: null,
+        userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.ticket.delete.mockResolvedValue(mockTicket);
+
+      const result = await service.deleteTicket(ticketId);
+
+      expect(result).toEqual({
+        message: 'Ticket deleted successfully',
+      });
+      expect(mockPrismaService.ticket.delete).toHaveBeenCalledWith({
+        where: { id: ticketId },
+      });
+    });
+
+    it('should throw NotFoundException if ticket does not exist', async () => {
+      mockPrismaService.ticket.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteTicket(ticketId)).rejects.toThrow(
+        'Ticket not found',
+      );
+      expect(mockPrismaService.ticket.delete).not.toHaveBeenCalled();
     });
   });
 });

@@ -229,8 +229,87 @@ PATCH /admin/users/:id
 }
 ```
 
+### Admin Ticket Management (US-13)
+Admins have full CRUD capabilities to manage all tickets in the system. This enables support staff to view, update, and delete tickets as needed for system management.
+
+**Admin Endpoints:**
+- `GET /admin/tickets` - List all tickets with pagination, filtering, and sorting
+  - Query parameters: `page`, `limit`, `sortBy`, `sortOrder`, `status`, `priority`
+  - Returns paginated list of all tickets from all users
+- `GET /admin/tickets/:id` - Get specific ticket by ID
+  - Returns ticket details including status history
+  - No ownership check - admins can view any ticket
+- `PATCH /admin/tickets/:id/status` - Update ticket status
+  - Required: status (OPEN, IN_PROGRESS, RESOLVED, CLOSED)
+  - Creates status history entry
+  - Sends email notification to ticket owner
+- `PATCH /admin/tickets/:id` - Update ticket details
+  - Optional fields: title, description, priority, imageUrl
+  - Allows partial updates (can update just one field)
+  - Validates priority values (LOW, MEDIUM, HIGH, CRITICAL)
+- `DELETE /admin/tickets/:id` - Delete a ticket
+  - Cascade deletes related comments and status history
+  - Permanent deletion (no soft delete)
+- `POST /admin/tickets/:id/comments` - Create comment on any ticket
+- `GET /admin/tickets/:id/comments` - View all comments on any ticket
+- `GET /admin/tickets/:id/history` - View ticket status change history
+
+**Security:**
+- Protected by JWT authentication + AdminGuard
+- Only users with `isAdmin: true` can access admin endpoints
+- Input validation using class-validator decorators
+- No security vulnerabilities detected by CodeQL scanner
+
+**Validation:**
+- Title and description are strings (when provided)
+- Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL
+- Status must be one of: OPEN, IN_PROGRESS, RESOLVED, CLOSED
+- All update fields are optional (partial updates supported)
+
+**Testing:**
+- 7 new unit tests for update and delete operations
+- Test coverage: 70%+ for tickets module
+- Edge cases tested: not found, partial updates
+- All 106 tests passing
+
+**Example Requests:**
+
+List all tickets with filtering:
+```
+GET /admin/tickets?page=1&limit=10&status=OPEN&sortBy=createdAt&sortOrder=desc
+```
+
+Update ticket details:
+```json
+PATCH /admin/tickets/:id
+{
+  "title": "Updated ticket title",
+  "priority": "HIGH",
+  "description": "Updated description"
+}
+```
+
+Update only priority:
+```json
+PATCH /admin/tickets/:id
+{
+  "priority": "CRITICAL"
+}
+```
+
+Delete ticket:
+```
+DELETE /admin/tickets/:id
+```
+
+Response:
+```json
+{
+  "message": "Ticket deleted successfully"
+}
+```
+
 ## Future Enhancements
 - Add e2e tests for ticket creation flow
-- Implement ticket update and delete functionality
 - Add ticket assignment to support staff
 - Email notifications for ticket creation and comments

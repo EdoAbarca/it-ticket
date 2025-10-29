@@ -15,6 +15,8 @@ describe('AdminTicketsController', () => {
     getTicketStatusHistory: jest.fn(),
     createAdminComment: jest.fn(),
     getAdminComments: jest.fn(),
+    updateTicket: jest.fn(),
+    deleteTicket: jest.fn(),
   };
 
   const mockJwtAuthGuard = {
@@ -317,6 +319,98 @@ describe('AdminTicketsController', () => {
       expect(mockTicketsService.getAdminComments).toHaveBeenCalledWith(
         ticketId,
       );
+    });
+  });
+
+  describe('updateTicket', () => {
+    const ticketId = 'ticket-123';
+
+    it('should update ticket successfully', async () => {
+      const updateTicketDto = {
+        title: 'Updated Title',
+        description: 'Updated Description',
+        priority: Priority.HIGH,
+      };
+
+      const mockResponse = {
+        message: 'Ticket updated successfully',
+        ticket: {
+          id: ticketId,
+          title: 'Updated Title',
+          description: 'Updated Description',
+          priority: Priority.HIGH,
+          status: Status.OPEN,
+          imageUrl: null,
+          userId: 'user-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            username: 'testuser',
+            email: 'test@example.com',
+          },
+        },
+      };
+
+      mockTicketsService.updateTicket.mockResolvedValue(mockResponse);
+
+      const result = await controller.updateTicket(ticketId, updateTicketDto);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.updateTicket).toHaveBeenCalledWith(
+        ticketId,
+        updateTicketDto,
+      );
+    });
+
+    it('should update partial fields', async () => {
+      const partialUpdate = { title: 'New Title Only' };
+      const mockResponse = {
+        message: 'Ticket updated successfully',
+        ticket: {
+          id: ticketId,
+          title: 'New Title Only',
+          description: 'Original Description',
+          priority: Priority.MEDIUM,
+          status: Status.OPEN,
+          imageUrl: null,
+          userId: 'user-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            username: 'testuser',
+            email: 'test@example.com',
+          },
+        },
+      };
+
+      mockTicketsService.updateTicket.mockResolvedValue(mockResponse);
+
+      const result = await controller.updateTicket(ticketId, partialUpdate);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.updateTicket).toHaveBeenCalledWith(
+        ticketId,
+        partialUpdate,
+      );
+    });
+  });
+
+  describe('deleteTicket', () => {
+    const ticketId = 'ticket-123';
+
+    it('should delete ticket successfully', async () => {
+      const mockResponse = {
+        message: 'Ticket deleted successfully',
+      };
+
+      mockTicketsService.deleteTicket.mockResolvedValue(mockResponse);
+
+      const result = await controller.deleteTicket(ticketId);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockTicketsService.deleteTicket).toHaveBeenCalledWith(ticketId);
     });
   });
 });
