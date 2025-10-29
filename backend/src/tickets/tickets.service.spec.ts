@@ -24,6 +24,9 @@ describe('TicketsService', () => {
     comment: {
       create: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -896,6 +899,108 @@ describe('TicketsService', () => {
         'Ticket not found',
       );
       expect(mockPrismaService.ticket.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateComment', () => {
+    const commentId = 'comment-123';
+    const newContent = 'Updated comment content';
+
+    it('should successfully update a comment', async () => {
+      const mockComment = {
+        id: commentId,
+        content: 'Original content',
+        ticketId: 'ticket-123',
+        userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedComment = {
+        ...mockComment,
+        content: newContent,
+        user: {
+          id: 'user-123',
+          username: 'testuser',
+          email: 'test@example.com',
+          isAdmin: false,
+        },
+      };
+
+      mockPrismaService.comment.findUnique.mockResolvedValue(mockComment);
+      mockPrismaService.comment.update.mockResolvedValue(mockUpdatedComment);
+
+      const result = await service.updateComment(commentId, newContent);
+
+      expect(result).toEqual({
+        message: 'Comment updated successfully',
+        comment: mockUpdatedComment,
+      });
+      expect(mockPrismaService.comment.findUnique).toHaveBeenCalledWith({
+        where: { id: commentId },
+      });
+      expect(mockPrismaService.comment.update).toHaveBeenCalledWith({
+        where: { id: commentId },
+        data: { content: newContent },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              isAdmin: true,
+            },
+          },
+        },
+      });
+    });
+
+    it('should throw NotFoundException if comment does not exist', async () => {
+      mockPrismaService.comment.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateComment(commentId, newContent),
+      ).rejects.toThrow('Comment not found');
+      expect(mockPrismaService.comment.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteComment', () => {
+    const commentId = 'comment-123';
+
+    it('should successfully delete a comment', async () => {
+      const mockComment = {
+        id: commentId,
+        content: 'Test comment',
+        ticketId: 'ticket-123',
+        userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.comment.findUnique.mockResolvedValue(mockComment);
+      mockPrismaService.comment.delete.mockResolvedValue(mockComment);
+
+      const result = await service.deleteComment(commentId);
+
+      expect(result).toEqual({
+        message: 'Comment deleted successfully',
+      });
+      expect(mockPrismaService.comment.findUnique).toHaveBeenCalledWith({
+        where: { id: commentId },
+      });
+      expect(mockPrismaService.comment.delete).toHaveBeenCalledWith({
+        where: { id: commentId },
+      });
+    });
+
+    it('should throw NotFoundException if comment does not exist', async () => {
+      mockPrismaService.comment.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteComment(commentId)).rejects.toThrow(
+        'Comment not found',
+      );
+      expect(mockPrismaService.comment.delete).not.toHaveBeenCalled();
     });
   });
 });

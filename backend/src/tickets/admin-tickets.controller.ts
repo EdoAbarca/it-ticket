@@ -19,6 +19,7 @@ import { UpdateTicketStatusDto } from '../tickets/dto/update-ticket-status.dto';
 import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
 import { GetTicketsQueryDto } from '../tickets/dto/get-tickets-query.dto';
 import { CreateCommentDto } from '../tickets/dto/create-comment.dto';
+import { UpdateCommentDto } from '../tickets/dto/update-comment.dto';
 
 @Controller('admin/tickets')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -93,5 +94,23 @@ export class AdminTicketsController {
   @Delete(':id')
   deleteTicket(@Param('id') id: string) {
     return this.ticketsService.deleteTicket(id);
+  }
+
+  // Comment management endpoints
+  @Patch('comments/:commentId')
+  updateComment(
+    @Param('commentId') commentId: string,
+    @Body(new ValidationPipe({ whitelist: true }))
+    updateCommentDto: UpdateCommentDto,
+  ) {
+    return this.ticketsService.updateComment(
+      commentId,
+      updateCommentDto.content,
+    );
+  }
+
+  @Delete('comments/:commentId')
+  deleteComment(@Param('commentId') commentId: string) {
+    return this.ticketsService.deleteComment(commentId);
   }
 }
