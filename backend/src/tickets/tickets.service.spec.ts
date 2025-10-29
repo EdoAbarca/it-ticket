@@ -126,10 +126,7 @@ describe('TicketsService', () => {
     });
 
     it('should notify all admins when a ticket is created', async () => {
-      const mockAdmins = [
-        { id: 'admin-1' },
-        { id: 'admin-2' },
-      ];
+      const mockAdmins = [{ id: 'admin-1' }, { id: 'admin-2' }];
 
       mockPrismaService.ticket.create.mockResolvedValue(mockTicket);
       mockPrismaService.user.findMany.mockResolvedValue(mockAdmins);
@@ -141,7 +138,9 @@ describe('TicketsService', () => {
         where: { isAdmin: true },
         select: { id: true },
       });
-      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(2);
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
       expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
         'admin-1',
         'COMMENT',
@@ -525,10 +524,7 @@ describe('TicketsService', () => {
     });
 
     it('should notify all admins when a user creates a comment', async () => {
-      const mockAdmins = [
-        { id: 'admin-1' },
-        { id: 'admin-2' },
-      ];
+      const mockAdmins = [{ id: 'admin-1' }, { id: 'admin-2' }];
 
       mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
       mockPrismaService.comment.create.mockResolvedValue(mockComment);
@@ -541,7 +537,9 @@ describe('TicketsService', () => {
         where: { isAdmin: true },
         select: { id: true },
       });
-      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(2);
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
       expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
         'admin-1',
         'COMMENT',
@@ -796,7 +794,9 @@ describe('TicketsService', () => {
       );
 
       // Should be called 2 times: once for ticket owner, once for other admin
-      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(2);
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
     });
 
     it('should throw NotFoundException if ticket does not exist', async () => {
