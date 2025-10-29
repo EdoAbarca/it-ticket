@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TicketsService } from './tickets.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../auth/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { Priority, Status } from '@prisma/client';
 
 describe('TicketsService', () => {
@@ -28,11 +29,19 @@ describe('TicketsService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    user: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
   const mockEmailService = {
     sendTicketStatusChangeEmail: jest.fn(),
+  };
+
+  const mockNotificationsService = {
+    createNotification: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,6 +55,10 @@ describe('TicketsService', () => {
         {
           provide: EmailService,
           useValue: mockEmailService,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();
@@ -87,6 +100,7 @@ describe('TicketsService', () => {
 
     it('should successfully create a ticket', async () => {
       mockPrismaService.ticket.create.mockResolvedValue(mockTicket);
+      mockPrismaService.user.findMany.mockResolvedValue([]);
 
       const result = await service.create(createTicketDto, userId);
 
@@ -109,6 +123,36 @@ describe('TicketsService', () => {
           },
         },
       });
+    });
+
+    it('should notify all admins when a ticket is created', async () => {
+      const mockAdmins = [{ id: 'admin-1' }, { id: 'admin-2' }];
+
+      mockPrismaService.ticket.create.mockResolvedValue(mockTicket);
+      mockPrismaService.user.findMany.mockResolvedValue(mockAdmins);
+      mockNotificationsService.createNotification.mockResolvedValue({});
+
+      await service.create(createTicketDto, userId);
+
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith({
+        where: { isAdmin: true },
+        select: { id: true },
+      });
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        'admin-1',
+        'COMMENT',
+        `New ticket created: "${mockTicket.title}" by ${mockTicket.user.username}`,
+        mockTicket.id,
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        'admin-2',
+        'COMMENT',
+        `New ticket created: "${mockTicket.title}" by ${mockTicket.user.username}`,
+        mockTicket.id,
+      );
     });
 
     it('should create a ticket with image URL', async () => {
@@ -427,6 +471,11 @@ describe('TicketsService', () => {
       imageUrl: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      user: {
+        id: userId,
+        username: 'testuser',
+        email: 'test@example.com',
+      },
     };
 
     const mockComment = {
@@ -447,6 +496,7 @@ describe('TicketsService', () => {
     it('should successfully create a comment', async () => {
       mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
       mockPrismaService.comment.create.mockResolvedValue(mockComment);
+      mockPrismaService.user.findMany.mockResolvedValue([]);
 
       const result = await service.createComment(ticketId, content, userId);
 
@@ -471,6 +521,39 @@ describe('TicketsService', () => {
           },
         },
       });
+    });
+
+    it('should notify all admins when a user creates a comment', async () => {
+      const mockAdmins = [{ id: 'admin-1' }, { id: 'admin-2' }];
+
+      mockPrismaService.ticket.findFirst.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.create.mockResolvedValue(mockComment);
+      mockPrismaService.user.findMany.mockResolvedValue(mockAdmins);
+      mockNotificationsService.createNotification.mockResolvedValue({});
+
+      await service.createComment(ticketId, content, userId);
+
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith({
+        where: { isAdmin: true },
+        select: { id: true },
+      });
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        'admin-1',
+        'COMMENT',
+        `${mockComment.user.username} commented on ticket "${mockTicket.title}"`,
+        ticketId,
+        mockComment.id,
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        'admin-2',
+        'COMMENT',
+        `${mockComment.user.username} commented on ticket "${mockTicket.title}"`,
+        ticketId,
+        mockComment.id,
+      );
     });
 
     it('should throw NotFoundException if ticket not found', async () => {
@@ -599,6 +682,11 @@ describe('TicketsService', () => {
       imageUrl: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      user: {
+        id: 'user-123',
+        username: 'testuser',
+        email: 'test@example.com',
+      },
     };
 
     const mockComment = {
@@ -617,8 +705,16 @@ describe('TicketsService', () => {
     };
 
     it('should allow admin to comment on any ticket', async () => {
+      const mockAdmin = {
+        id: adminId,
+        username: 'admin',
+      };
+
       mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
       mockPrismaService.comment.create.mockResolvedValue(mockComment);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrismaService.user.findMany.mockResolvedValue([]);
+      mockNotificationsService.createNotification.mockResolvedValue({});
 
       const result = await service.createAdminComment(
         ticketId,
@@ -632,6 +728,15 @@ describe('TicketsService', () => {
       });
       expect(mockPrismaService.ticket.findUnique).toHaveBeenCalledWith({
         where: { id: ticketId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
       });
       expect(mockPrismaService.comment.create).toHaveBeenCalledWith({
         data: {
@@ -650,6 +755,48 @@ describe('TicketsService', () => {
           },
         },
       });
+    });
+
+    it('should notify ticket owner and other admins when admin comments', async () => {
+      const mockAdmin = {
+        id: adminId,
+        username: 'admin',
+      };
+      const otherAdmins = [
+        { id: 'admin-123' }, // Same as commenting admin
+        { id: 'admin-456' }, // Different admin
+      ];
+
+      mockPrismaService.ticket.findUnique.mockResolvedValue(mockTicket);
+      mockPrismaService.comment.create.mockResolvedValue(mockComment);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrismaService.user.findMany.mockResolvedValue(otherAdmins);
+      mockNotificationsService.createNotification.mockResolvedValue({});
+
+      await service.createAdminComment(ticketId, content, adminId);
+
+      // Should notify ticket owner
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        mockTicket.userId,
+        'COMMENT',
+        `${mockAdmin.username} commented on your ticket "${mockTicket.title}"`,
+        ticketId,
+        mockComment.id,
+      );
+
+      // Should notify other admin (not the one who commented)
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        'admin-456',
+        'COMMENT',
+        `${mockAdmin.username} commented on ticket "${mockTicket.title}"`,
+        ticketId,
+        mockComment.id,
+      );
+
+      // Should be called 2 times: once for ticket owner, once for other admin
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledTimes(
+        2,
+      );
     });
 
     it('should throw NotFoundException if ticket does not exist', async () => {

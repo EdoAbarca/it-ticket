@@ -309,7 +309,39 @@ Response:
 }
 ```
 
+### Admin Notifications (US-16)
+Admins receive real-time in-app notifications for all ticket-related activities, enabling them to provide timely support.
+
+**Notification Triggers:**
+1. **Ticket Creation**: When any user creates a new ticket, all admins are notified
+2. **User Comments**: When a ticket owner adds a comment to their ticket, all admins are notified
+3. **Admin Comments**: When an admin comments on a ticket, other admins and the ticket owner are notified
+
+**Notification Format:**
+- New ticket: `"New ticket created: "{title}" by {username}"`
+- User comment: `"{username} commented on ticket "{title}"`
+- Admin comment: `"{admin_username} commented on ticket "{title}"` (for other admins)
+- Admin comment: `"{admin_username} commented on your ticket "{title}"` (for ticket owner)
+
+**Implementation:**
+- Notifications are created asynchronously to avoid blocking ticket/comment operations
+- Failed notifications are logged but don't affect the main operation
+- Admins can view their notifications via `/notifications` endpoint
+- Notification types: COMMENT (used for all activity types for simplicity)
+
+**User Endpoints:**
+- `GET /notifications` - Get all notifications for current user
+- `GET /notifications/unread-count` - Get count of unread notifications
+- `PATCH /notifications/:id/read` - Mark a notification as read
+- `PATCH /notifications/mark-all-read` - Mark all notifications as read
+
+**Testing:**
+- 3 new unit tests added for admin notification scenarios
+- All 129 tests passing
+- Test coverage maintained above 80%
+
 ## Future Enhancements
 - Add e2e tests for ticket creation flow
 - Add ticket assignment to support staff
-- Email notifications for ticket creation and comments
+- Add email notifications in addition to in-app notifications
+- Add websocket support for real-time notification delivery
