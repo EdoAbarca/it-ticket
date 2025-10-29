@@ -10,7 +10,9 @@ export class CreateTicketDto {
   @IsNotEmpty({ message: 'Description is required' })
   description: string;
 
-  @IsEnum(Priority, { message: 'Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL' })
+  @IsEnum(Priority, {
+    message: 'Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL',
+  })
   priority: Priority;
 
   @IsOptional()

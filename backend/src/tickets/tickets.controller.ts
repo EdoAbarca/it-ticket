@@ -51,12 +51,13 @@ export class TicketsController {
     }),
   )
   async create(
-    @Body(new ValidationPipe({ whitelist: true })) createTicketDto: CreateTicketDto,
+    @Body(new ValidationPipe({ whitelist: true }))
+    createTicketDto: CreateTicketDto,
     @UploadedFile() file: Express.Multer.File,
-    @Request() req,
+    @Request() req: { user: { id: string } },
   ) {
     const userId = req.user.id;
-    
+
     // Add image URL if file was uploaded
     if (file) {
       createTicketDto.imageUrl = `/uploads/${file.filename}`;
@@ -66,13 +67,13 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(@Request() req) {
+  findAll(@Request() req: { user: { id: string } }) {
     const userId = req.user.id;
     return this.ticketsService.findAll(userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
+  findOne(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     const userId = req.user.id;
     return this.ticketsService.findOne(id, userId);
   }

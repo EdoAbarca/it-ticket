@@ -10,20 +10,21 @@ const Dashboard = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
   const fetchTickets = async () => {
     try {
       const data = await ticketService.getTickets(token);
       setTickets(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load tickets');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = async () => {
     try {
