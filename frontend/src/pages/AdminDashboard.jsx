@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
-import { authService, ticketService, API_BASE_URL } from '../services/api';
+import { authService, adminTicketService, API_BASE_URL } from '../services/api';
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, token, logout } = useAuthStore();
   const [tickets, setTickets] = useState([]);
@@ -35,11 +35,16 @@ const Dashboard = () => {
       if (filterStatus) params.status = filterStatus;
       if (filterPriority) params.priority = filterPriority;
       
-      const data = await ticketService.getTickets(token, params);
+      const data = await adminTicketService.getAllTickets(token, params);
       setTickets(data.tickets);
       setPagination(data.pagination);
-    } catch {
-      toast.error('Failed to load tickets');
+    } catch (error) {
+      if (error.message.includes('Admin access required') || error.message.includes('Access denied')) {
+        toast.error('Admin access required');
+        navigate('/dashboard');
+      } else {
+        toast.error('Failed to load tickets');
+      }
     } finally {
       setLoading(false);
     }
@@ -73,19 +78,11 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // Call backend logout endpoint
       await authService.logout(token);
-      
-      // Clear local state
       logout();
-      
-      // Show success message
       toast.success('Logged out successfully');
-      
-      // Redirect to login
       navigate('/login');
     } catch {
-      // Even if backend call fails, still logout locally
       logout();
       toast.info('Logged out');
       navigate('/login');
@@ -138,18 +135,16 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">IT Ticket System</h1>
+              <h1 className="text-xl font-bold text-gray-900">IT Ticket System - Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {user?.isAdmin && (
-                <button
-                  onClick={() => navigate('/admin/dashboard')}
-                  className="text-indigo-600 hover:text-indigo-700 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Admin Dashboard
-                </button>
-              )}
-              <span className="text-gray-700">Welcome, {user?.username}!</span>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                My Tickets
+              </button>
+              <span className="text-gray-700">Welcome, {user?.username}! (Admin)</span>
               <button
                 onClick={handleLogout}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
@@ -164,26 +159,7 @@ const Dashboard = () => {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900">My Tickets</h2>
-            <button
-              onClick={() => navigate('/tickets/create')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Create Ticket
-            </button>
+            <h2 className="text-2xl font-bold text-gray-900">All Tickets</h2>
           </div>
 
           {/* Filters and Sort Controls */}
@@ -295,28 +271,7 @@ const Dashboard = () => {
                 />
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">No tickets</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating a new ticket.</p>
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate('/tickets/create')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Create Ticket
-                </button>
-              </div>
+              <p className="mt-1 text-sm text-gray-500">No tickets found matching your criteria.</p>
             </div>
           ) : (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -324,12 +279,17 @@ const Dashboard = () => {
                 {tickets.map((ticket) => (
                   <li key={ticket.id}>
                     <button
-                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      onClick={() => navigate(`/admin/tickets/${ticket.id}`)}
                       className="w-full text-left px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors duration-150"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900">{ticket.title}</h3>
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-medium text-gray-900">{ticket.title}</h3>
+                            <span className="text-sm text-gray-500">
+                              by {ticket.user.username}
+                            </span>
+                          </div>
                           <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ticket.description}</p>
                           <div className="mt-2 flex items-center space-x-4">
                             <span
@@ -419,7 +379,6 @@ const Dashboard = () => {
                         {/* Page numbers */}
                         {[...Array(pagination.totalPages)].map((_, idx) => {
                           const pageNum = idx + 1;
-                          // Show first page, last page, current page, and pages around current
                           if (
                             pageNum === 1 ||
                             pageNum === pagination.totalPages ||
@@ -470,4 +429,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;
