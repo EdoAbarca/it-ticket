@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { Status } from '@prisma/client';
 import { EmailService } from '../auth/email.service';
@@ -443,5 +444,57 @@ export class TicketsService {
     });
 
     return comments;
+  }
+
+  // Admin update and delete methods
+  async updateTicket(ticketId: string, updateTicketDto: UpdateTicketDto) {
+    // Check if ticket exists
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    // Update the ticket
+    const updatedTicket = await this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: updateTicketDto,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: 'Ticket updated successfully',
+      ticket: updatedTicket,
+    };
+  }
+
+  async deleteTicket(ticketId: string) {
+    // Check if ticket exists
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    // Delete the ticket (cascade will handle related records)
+    await this.prisma.ticket.delete({
+      where: { id: ticketId },
+    });
+
+    return {
+      message: 'Ticket deleted successfully',
+    };
   }
 }

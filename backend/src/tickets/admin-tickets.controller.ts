@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Post,
   Param,
   Body,
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { TicketsService } from '../tickets/tickets.service';
 import { UpdateTicketStatusDto } from '../tickets/dto/update-ticket-status.dto';
+import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
 import { GetTicketsQueryDto } from '../tickets/dto/get-tickets-query.dto';
 import { CreateCommentDto } from '../tickets/dto/create-comment.dto';
 
@@ -77,5 +79,19 @@ export class AdminTicketsController {
   @Get(':id/comments')
   getComments(@Param('id') ticketId: string) {
     return this.ticketsService.getAdminComments(ticketId);
+  }
+
+  @Patch(':id')
+  updateTicket(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ whitelist: true }))
+    updateTicketDto: UpdateTicketDto,
+  ) {
+    return this.ticketsService.updateTicket(id, updateTicketDto);
+  }
+
+  @Delete(':id')
+  deleteTicket(@Param('id') id: string) {
+    return this.ticketsService.deleteTicket(id);
   }
 }
