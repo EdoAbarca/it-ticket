@@ -284,4 +284,14 @@ describe('AuthService', () => {
       });
     });
   });
+
+  describe('logout', () => {
+    it('should return success message', () => {
+      const result = service.logout();
+
+      expect(result).toEqual({
+        message: 'Logout successful',
+      });
+    });
+  });
 });

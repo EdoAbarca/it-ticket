@@ -1,13 +1,31 @@
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import useAuthStore from '../store/authStore';
+import { authService } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, token, logout } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      // Call backend logout endpoint
+      await authService.logout(token);
+      
+      // Clear local state
+      logout();
+      
+      // Show success message
+      toast.success('Logged out successfully');
+      
+      // Redirect to login
+      navigate('/login');
+    } catch {
+      // Even if backend call fails, still logout locally
+      logout();
+      toast.info('Logged out');
+      navigate('/login');
+    }
   };
 
   return (

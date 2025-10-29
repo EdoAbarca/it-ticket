@@ -96,4 +96,13 @@ export class AuthService {
       user: userWithoutPassword,
     };
   }
+
+  logout() {
+    // Since we're using stateless JWT tokens, we can't invalidate them server-side
+    // without implementing a token blacklist. This endpoint serves as a hook for
+    // future enhancements like token blacklisting or logging logout events.
+    return {
+      message: 'Logout successful',
+    };
+  }
 }

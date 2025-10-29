@@ -36,4 +36,22 @@ export const authService = {
 
     return data;
   },
+
+  async logout(token) {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Logout failed');
+    }
+
+    return data;
+  },
 };
