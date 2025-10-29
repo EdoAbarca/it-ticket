@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -10,9 +12,9 @@ const Login = () => {
             Login page - Coming soon
           </p>
           <p className="mt-4 text-center">
-            <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
               Don't have an account? Register here
-            </a>
+            </Link>
           </p>
         </div>
       </div>
