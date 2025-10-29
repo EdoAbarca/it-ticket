@@ -166,6 +166,42 @@ export const ticketService = {
 
     return data;
   },
+
+  async createComment(ticketId, content, token) {
+    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ content }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create comment');
+    }
+
+    return data;
+  },
+
+  async getComments(ticketId, token) {
+    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/comments`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch comments');
+    }
+
+    return data;
+  },
 };
 
 export const adminTicketService = {

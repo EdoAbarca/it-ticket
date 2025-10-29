@@ -472,16 +472,19 @@ describe('TicketsService', () => {
 
       await expect(
         service.createComment(ticketId, content, userId),
-      ).rejects.toThrow('Ticket not found or you do not have permission to comment on it');
+      ).rejects.toThrow(
+        'Ticket not found or you do not have permission to comment on it',
+      );
     });
 
     it('should throw NotFoundException if user does not own the ticket', async () => {
-      const otherUserTicket = { ...mockTicket, userId: 'other-user' };
       mockPrismaService.ticket.findFirst.mockResolvedValue(null);
 
       await expect(
         service.createComment(ticketId, content, userId),
-      ).rejects.toThrow('Ticket not found or you do not have permission to comment on it');
+      ).rejects.toThrow(
+        'Ticket not found or you do not have permission to comment on it',
+      );
     });
   });
 
