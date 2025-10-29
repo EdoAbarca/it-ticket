@@ -289,3 +289,76 @@ export const adminTicketService = {
   },
 };
 
+export const notificationService = {
+  async getNotifications(token, unreadOnly = false) {
+    const url = new URL(`${API_BASE_URL}/notifications`);
+    if (unreadOnly) {
+      url.searchParams.append('unreadOnly', 'true');
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch notifications');
+    }
+
+    return data;
+  },
+
+  async getUnreadCount(token) {
+    const response = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch unread count');
+    }
+
+    return data;
+  },
+
+  async markAsRead(notificationId, token) {
+    const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to mark notification as read');
+    }
+
+    return data;
+  },
+
+  async markAllAsRead(token) {
+    const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to mark all as read');
+    }
+
+    return data;
+  },
+};
+

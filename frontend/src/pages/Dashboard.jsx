@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore';
 import { authService, ticketService, API_BASE_URL } from '../services/api';
+import NotificationBell from '../components/NotificationBell';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -149,6 +150,7 @@ const Dashboard = () => {
                   Admin Dashboard
                 </button>
               )}
+              <NotificationBell />
               <span className="text-gray-700">Welcome, {user?.username}!</span>
               <button
                 onClick={handleLogout}
