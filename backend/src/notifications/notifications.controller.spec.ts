@@ -66,10 +66,9 @@ describe('NotificationsController', () => {
       });
 
       expect(result).toEqual({ notifications: mockNotifications });
-      expect(mockNotificationsService.getUserNotifications).toHaveBeenCalledWith(
-        'user-1',
-        false,
-      );
+      expect(
+        mockNotificationsService.getUserNotifications,
+      ).toHaveBeenCalledWith('user-1', false);
     });
   });
 

@@ -566,7 +566,7 @@ export class TicketsService {
         message: 'Comment updated successfully',
         comment: updatedComment,
       };
-    } catch (error) {
+    } catch {
       // Prisma throws P2025 when record is not found
       throw new NotFoundException('Comment not found');
     }
@@ -582,7 +582,7 @@ export class TicketsService {
       return {
         message: 'Comment deleted successfully',
       };
-    } catch (error) {
+    } catch {
       // Prisma throws P2025 when record is not found
       throw new NotFoundException('Comment not found');
     }

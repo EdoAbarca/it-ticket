@@ -947,7 +947,9 @@ describe('TicketsService', () => {
     });
 
     it('should throw NotFoundException if comment does not exist', async () => {
-      mockPrismaService.comment.update.mockRejectedValue(new Error('Record not found'));
+      mockPrismaService.comment.update.mockRejectedValue(
+        new Error('Record not found'),
+      );
 
       await expect(
         service.updateComment(commentId, newContent),
@@ -981,7 +983,9 @@ describe('TicketsService', () => {
     });
 
     it('should throw NotFoundException if comment does not exist', async () => {
-      mockPrismaService.comment.delete.mockRejectedValue(new Error('Record not found'));
+      mockPrismaService.comment.delete.mockRejectedValue(
+        new Error('Record not found'),
+      );
 
       await expect(service.deleteComment(commentId)).rejects.toThrow(
         'Comment not found',
