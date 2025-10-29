@@ -14,6 +14,32 @@ const AdminTicketDetail = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
 
+  useEffect(() => {
+    const fetchTicket = async () => {
+      try {
+        const data = await adminTicketService.getTicketById(id, token);
+        setTicket(data);
+        setSelectedStatus(data.status);
+        
+        // Fetch status history
+        const historyData = await adminTicketService.getTicketStatusHistory(id, token);
+        setStatusHistory(historyData.history);
+      } catch (error) {
+        if (error.message.includes('Admin access required') || error.message.includes('Access denied')) {
+          toast.error('Admin access required');
+          navigate('/dashboard');
+        } else {
+          toast.error('Failed to load ticket');
+          navigate('/admin/dashboard');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTicket();
+  }, [id, token, navigate]);
+
   const fetchTicket = async () => {
     try {
       const data = await adminTicketService.getTicketById(id, token);
@@ -35,11 +61,6 @@ const AdminTicketDetail = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchTicket();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
   const handleStatusUpdate = async (e) => {
     e.preventDefault();

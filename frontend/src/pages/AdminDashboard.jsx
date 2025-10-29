@@ -22,38 +22,37 @@ const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
 
-  const fetchTickets = async () => {
-    setLoading(true);
-    try {
-      const params = {
-        sortBy,
-        sortOrder,
-        page: pagination.page,
-        limit: pagination.limit,
-      };
-      
-      if (filterStatus) params.status = filterStatus;
-      if (filterPriority) params.priority = filterPriority;
-      
-      const data = await adminTicketService.getAllTickets(token, params);
-      setTickets(data.tickets);
-      setPagination(data.pagination);
-    } catch (error) {
-      if (error.message.includes('Admin access required') || error.message.includes('Access denied')) {
-        toast.error('Admin access required');
-        navigate('/dashboard');
-      } else {
-        toast.error('Failed to load tickets');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchTickets = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          sortBy,
+          sortOrder,
+          page: pagination.page,
+          limit: pagination.limit,
+        };
+        
+        if (filterStatus) params.status = filterStatus;
+        if (filterPriority) params.priority = filterPriority;
+        
+        const data = await adminTicketService.getAllTickets(token, params);
+        setTickets(data.tickets);
+        setPagination(data.pagination);
+      } catch (error) {
+        if (error.message.includes('Admin access required') || error.message.includes('Access denied')) {
+          toast.error('Admin access required');
+          navigate('/dashboard');
+        } else {
+          toast.error('Failed to load tickets');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTickets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortBy, sortOrder, filterStatus, filterPriority, pagination.page]);
+  }, [sortBy, sortOrder, filterStatus, filterPriority, pagination.page, pagination.limit, token, navigate]);
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, page: newPage }));
