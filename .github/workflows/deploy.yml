@@ -1,0 +1,146 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version tag to deploy (leave empty for latest)'
+        required: false
+        type: string
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    if: github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.example.com
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Application
+        run: |
+          echo "Building application for staging..."
+          # Add your staging build commands here
+          # Example: docker build, npm build, etc.
+
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # Example: docker push, ssh deployment, cloud provider CLI, etc.
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests on staging..."
+          # Add smoke test commands here
+          # Example: curl health checks, basic API tests
+
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "Staging deployment successful!"
+          # Add notification logic here (Slack, email, etc.)
+
+      - name: Notify Deployment Failure
+        if: failure()
+        run: |
+          echo "Staging deployment failed!"
+          # Add failure notification logic here
+
+  deploy-production:
+    name: Deploy to Production
+    if: github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://example.com
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version || github.ref }}
+
+      - name: Validate Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "Warning: No version specified, using latest commit"
+          else
+            echo "Deploying version: ${{ github.event.inputs.version }}"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Application
+        run: |
+          echo "Building application for production..."
+          # Add your production build commands here
+          # Example: docker build with production tags
+
+      - name: Run Pre-deployment Checks
+        run: |
+          echo "Running pre-deployment checks..."
+          # Add pre-deployment validation
+          # Example: config validation, database migration dry-run
+
+      - name: Create Backup
+        run: |
+          echo "Creating backup before deployment..."
+          # Add backup logic here
+          # Example: database backup, configuration backup
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment commands here
+          # Example: docker push, blue-green deployment, rolling update
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests on production..."
+          # Add smoke test commands here
+          # Example: curl health checks, critical path tests
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Initiating rollback..."
+          # Add rollback logic here
+          # Example: restore from backup, revert to previous version
+
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "Production deployment successful!"
+          # Add notification logic here (Slack, email, etc.)
+
+      - name: Notify Deployment Failure
+        if: failure()
+        run: |
+          echo "Production deployment failed!"
+          # Add failure notification logic here

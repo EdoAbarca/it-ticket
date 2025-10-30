@@ -17,9 +17,12 @@ export class LoggingInterceptor implements NestInterceptor {
     const { method, ip } = request;
     const userAgent = request.get('user-agent') || '';
     const startTime = Date.now();
-    
+
     // Sanitize URL to remove query parameters that might contain sensitive data
-    const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+    const url = new URL(
+      request.url,
+      `http://${request.headers.host || 'localhost'}`,
+    );
     const sanitizedUrl = url.pathname;
 
     // Log incoming request

@@ -113,7 +113,11 @@ export class MonitoringService {
     };
   }
 
-  private getMemoryUsage(): { used: number; total: number; percentage: number } {
+  private getMemoryUsage(): {
+    used: number;
+    total: number;
+    percentage: number;
+  } {
     const memUsage = process.memoryUsage();
     const totalMemory = memUsage.heapTotal;
     const usedMemory = memUsage.heapUsed;
@@ -128,7 +132,9 @@ export class MonitoringService {
 
   private getVersion(): string {
     // Try to get version from package.json or use BUILD_VERSION env var
-    return process.env.BUILD_VERSION || process.env.npm_package_version || '1.0.0';
+    return (
+      process.env.BUILD_VERSION || process.env.npm_package_version || '1.0.0'
+    );
   }
 
   getMetrics(): MetricsResult {

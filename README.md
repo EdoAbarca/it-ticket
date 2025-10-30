@@ -1,5 +1,9 @@
 # IT Ticket Management System
 
+[![CI](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml)
+[![Security Scanning](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml)
+[![Docker Build](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml)
+
 A modern, full-stack IT ticket management system built with React, NestJS, and PostgreSQL. Fully containerized with Docker for easy deployment.
 
 ## Features
@@ -242,6 +246,41 @@ npm run test:cov      # Run with coverage
 
 Test coverage is maintained above 80%.
 
+## CI/CD Pipeline
+
+This project uses a comprehensive CI/CD pipeline for automated testing, security scanning, and deployment.
+
+### Automated Workflows
+
+- **Continuous Integration**: Automatic testing and building on every push and PR
+- **Pull Request Validation**: Code quality checks and test coverage enforcement
+- **Security Scanning**: Daily vulnerability scans and CodeQL analysis
+- **Docker Build**: Automated container building and health checks
+- **Deployment**: Manual deployment to staging and production environments
+
+### For Developers
+
+Before submitting a PR:
+```bash
+# Run linting
+cd backend && npm run lint
+cd ../frontend && npm run lint
+
+# Run tests
+cd backend && npm test
+
+# Check coverage
+cd backend && npm run test:cov
+```
+
+All PRs must:
+- Pass linting checks
+- Have passing tests
+- Maintain >80% test coverage
+- Pass security scans
+
+For detailed CI/CD documentation, see [CICD.md](./CICD.md)
+
 ## Security
 
 - JWT-based authentication
@@ -268,6 +307,7 @@ This project is licensed under the UNLICENSED License.
 
 For issues and questions:
 - Check [DOCKER.md](./DOCKER.md) for containerization issues
+- Check [CICD.md](./CICD.md) for CI/CD pipeline documentation
 - Check [TICKET_FEATURE.md](./TICKET_FEATURE.md) for feature documentation
 - Check [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) for database management and backup/restore procedures
 - Check [MONITORING.md](./MONITORING.md) for application monitoring and health checks
