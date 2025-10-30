@@ -1,21 +1,24 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class AwsSecretsService implements OnModuleInit {
+export class AwsSecretsService {
   private readonly logger = new Logger(AwsSecretsService.name);
   private secretsCache: Map<string, any> = new Map();
 
   constructor(private configService: ConfigService) {}
 
-  async onModuleInit() {
+  async initialize() {
     // Only load secrets if DB_SECRET_ARN is configured (i.e., running in AWS)
     const secretArn = this.configService.get<string>('DB_SECRET_ARN');
     if (secretArn) {
       this.logger.log('AWS Secrets Manager integration enabled');
       await this.loadDatabaseSecrets();
+      this.updateDatabaseUrl();
     } else {
-      this.logger.log('Using local environment variables (AWS Secrets Manager not configured)');
+      this.logger.log(
+        'Using local environment variables (AWS Secrets Manager not configured)',
+      );
     }
   }
 
@@ -27,8 +30,10 @@ export class AwsSecretsService implements OnModuleInit {
       }
 
       // Dynamic import to avoid bundling AWS SDK in local dev
-      const { SecretsManagerClient, GetSecretValueCommand } = await import('@aws-sdk/client-secrets-manager');
-      
+      const { SecretsManagerClient, GetSecretValueCommand } = await import(
+        '@aws-sdk/client-secrets-manager'
+      );
+
       const client = new SecretsManagerClient({
         region: this.configService.get<string>('AWS_REGION', 'us-east-1'),
       });
@@ -44,8 +49,21 @@ export class AwsSecretsService implements OnModuleInit {
         this.logger.log('Database secrets loaded from AWS Secrets Manager');
       }
     } catch (error) {
-      this.logger.error('Failed to load secrets from AWS Secrets Manager', error);
+      this.logger.error(
+        'Failed to load secrets from AWS Secrets Manager',
+        error,
+      );
       throw error;
+    }
+  }
+
+  private updateDatabaseUrl(): void {
+    const secrets = this.secretsCache.get('database');
+    if (secrets) {
+      // Update the DATABASE_URL environment variable for Prisma
+      const databaseUrl = `postgresql://${secrets.username}:${secrets.password}@${secrets.host}:${secrets.port}/${secrets.dbname}?schema=public`;
+      process.env.DATABASE_URL = databaseUrl;
+      this.logger.log('DATABASE_URL updated from AWS Secrets Manager');
     }
   }
 
@@ -55,7 +73,7 @@ export class AwsSecretsService implements OnModuleInit {
       // Construct DATABASE_URL from secrets
       return `postgresql://${secrets.username}:${secrets.password}@${secrets.host}:${secrets.port}/${secrets.dbname}?schema=public`;
     }
-    
+
     // Fallback to environment variable
     return this.configService.get<string>('DATABASE_URL', '');
   }

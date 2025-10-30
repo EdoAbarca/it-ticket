@@ -15,14 +15,16 @@ export class S3Service {
 
   async initialize() {
     if (!this.isConfigured) {
-      this.logger.warn('S3 not configured, file operations will use local storage');
+      this.logger.warn(
+        'S3 not configured, file operations will use local storage',
+      );
       return;
     }
 
     try {
       // Dynamic import to avoid bundling AWS SDK in local dev
       const { S3Client } = await import('@aws-sdk/client-s3');
-      
+
       this.s3Client = new S3Client({
         region: this.configService.get<string>('AWS_REGION', 'us-east-1'),
       });
@@ -34,14 +36,18 @@ export class S3Service {
     }
   }
 
-  async uploadFile(key: string, body: Buffer, contentType?: string): Promise<string> {
+  async uploadFile(
+    key: string,
+    body: Buffer,
+    contentType?: string,
+  ): Promise<string> {
     if (!this.isConfigured) {
       throw new Error('S3 is not configured');
     }
 
     try {
       const { PutObjectCommand } = await import('@aws-sdk/client-s3');
-      
+
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
@@ -50,10 +56,10 @@ export class S3Service {
       });
 
       await this.s3Client.send(command);
-      
+
       const url = `https://${this.bucketName}.s3.${this.configService.get<string>('AWS_REGION', 'us-east-1')}.amazonaws.com/${key}`;
       this.logger.log(`File uploaded to S3: ${key}`);
-      
+
       return url;
     } catch (error) {
       this.logger.error(`Failed to upload file to S3: ${key}`, error);
@@ -68,21 +74,21 @@ export class S3Service {
 
     try {
       const { GetObjectCommand } = await import('@aws-sdk/client-s3');
-      
+
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
       const response = await this.s3Client.send(command);
-      const stream = response.Body as any;
-      
+      const stream = response.Body;
+
       // Convert stream to buffer
       const chunks: any[] = [];
       for await (const chunk of stream) {
         chunks.push(chunk);
       }
-      
+
       return Buffer.concat(chunks);
     } catch (error) {
       this.logger.error(`Failed to get file from S3: ${key}`, error);
@@ -97,7 +103,7 @@ export class S3Service {
 
     try {
       const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
-      
+
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
         Key: key,
@@ -118,14 +124,14 @@ export class S3Service {
 
     try {
       const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
-      
+
       const command = new ListObjectsV2Command({
         Bucket: this.bucketName,
         Prefix: prefix,
       });
 
       const response = await this.s3Client.send(command);
-      return response.Contents?.map(obj => obj.Key || '') || [];
+      return response.Contents?.map((obj) => obj.Key || '') || [];
     } catch (error) {
       this.logger.error('Failed to list files from S3', error);
       throw error;
