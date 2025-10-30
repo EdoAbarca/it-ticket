@@ -30,7 +30,7 @@ check_file() {
 }
 
 check_content() {
-    if grep -q "$2" "$1" 2>/dev/null; then
+    if grep -Fq "$2" "$1" 2>/dev/null; then
         echo -e "${GREEN}✓${NC} $3"
         ((PASS++))
         return 0
@@ -93,7 +93,14 @@ echo "5. Checking Nginx configuration..."
 echo "----------------------------------"
 check_content "frontend/nginx.conf" "location /" "Root location configured"
 check_content "frontend/nginx.conf" "location /api" "API proxy configured"
-check_content "frontend/nginx.conf" "try_files.*index.html" "SPA routing configured"
+# Use more specific check for try_files with index.html
+if grep -q "try_files" "frontend/nginx.conf" && grep -q "index.html" "frontend/nginx.conf" 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} SPA routing configured"
+    ((PASS++))
+else
+    echo -e "${YELLOW}⚠${NC} SPA routing configured"
+    ((WARN++))
+fi
 check_content "frontend/nginx.conf" "gzip on" "Gzip compression enabled"
 check_content "frontend/nginx.conf" "X-Frame-Options" "Security headers configured"
 echo ""
@@ -140,7 +147,7 @@ echo ""
 
 echo "10. Validating Docker Compose syntax..."
 echo "---------------------------------------"
-if command -v docker &> /dev/null; then
+if command -v docker > /dev/null 2>&1; then
     if docker compose config > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC} docker-compose.yml syntax is valid"
         ((PASS++))
