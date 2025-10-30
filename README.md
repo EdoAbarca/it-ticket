@@ -10,6 +10,7 @@ A modern, full-stack IT ticket management system built with React, NestJS, and P
 - 🔔 **Notifications**: Real-time in-app notifications for admins
 - 🔐 **Authentication**: Secure JWT-based authentication
 - 📊 **Admin Dashboard**: Comprehensive ticket and user management
+- 🗄️ **Database Management**: Migration and backup management for DevOps
 - 🐳 **Docker Ready**: Fully containerized for consistent deployments
 
 ## Tech Stack
@@ -178,6 +179,18 @@ npm run lint         # Lint code
 - `PATCH /notifications/:id/read` - Mark as read
 - `PATCH /notifications/mark-all-read` - Mark all as read
 
+### Database Management (Admin Only)
+- `GET /admin/database/migration-status` - Check migration status
+- `POST /admin/database/migrate` - Apply pending migrations
+- `GET /admin/database/validate-schema` - Validate Prisma schema
+- `GET /admin/database/info` - Get database information
+- `POST /admin/database/backup` - Create database backup
+- `GET /admin/database/backups` - List all backups
+- `POST /admin/database/restore` - Restore from backup
+- `DELETE /admin/database/backup` - Delete a backup
+
+For detailed documentation, see [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)
+
 ## Environment Variables
 
 ### Root `.env`
@@ -248,4 +261,5 @@ This project is licensed under the UNLICENSED License.
 For issues and questions:
 - Check [DOCKER.md](./DOCKER.md) for containerization issues
 - Check [TICKET_FEATURE.md](./TICKET_FEATURE.md) for feature documentation
+- Check [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) for database management and backup/restore procedures
 - Open an issue in the repository
