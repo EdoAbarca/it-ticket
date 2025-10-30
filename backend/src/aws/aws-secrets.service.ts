@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 export class AwsSecretsService {
   private readonly logger = new Logger(AwsSecretsService.name);
   private secretsCache: Map<string, any> = new Map();
+  private databaseUrl: string | null = null;
 
   constructor(private configService: ConfigService) {}
 
@@ -57,21 +58,31 @@ export class AwsSecretsService {
     }
   }
 
+  private constructDatabaseUrl(secrets: any): string {
+    return `postgresql://${secrets.username}:${secrets.password}@${secrets.host}:${secrets.port}/${secrets.dbname}?schema=public`;
+  }
+
   private updateDatabaseUrl(): void {
     const secrets = this.secretsCache.get('database');
     if (secrets) {
-      // Update the DATABASE_URL environment variable for Prisma
-      const databaseUrl = `postgresql://${secrets.username}:${secrets.password}@${secrets.host}:${secrets.port}/${secrets.dbname}?schema=public`;
-      process.env.DATABASE_URL = databaseUrl;
+      // Store the constructed URL for Prisma to use
+      this.databaseUrl = this.constructDatabaseUrl(secrets);
+      // Update environment variable for backward compatibility with Prisma
+      process.env.DATABASE_URL = this.databaseUrl;
       this.logger.log('DATABASE_URL updated from AWS Secrets Manager');
     }
   }
 
   getDatabaseUrl(): string {
+    // Return cached URL if available
+    if (this.databaseUrl) {
+      return this.databaseUrl;
+    }
+
+    // Construct from secrets if available
     const secrets = this.secretsCache.get('database');
     if (secrets) {
-      // Construct DATABASE_URL from secrets
-      return `postgresql://${secrets.username}:${secrets.password}@${secrets.host}:${secrets.port}/${secrets.dbname}?schema=public`;
+      return this.constructDatabaseUrl(secrets);
     }
 
     // Fallback to environment variable

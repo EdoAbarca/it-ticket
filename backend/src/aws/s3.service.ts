@@ -81,12 +81,12 @@ export class S3Service {
       });
 
       const response = await this.s3Client.send(command);
-      const stream = response.Body;
+      const stream = response.Body as NodeJS.ReadableStream;
 
       // Convert stream to buffer
-      const chunks: any[] = [];
+      const chunks: Buffer[] = [];
       for await (const chunk of stream) {
-        chunks.push(chunk);
+        chunks.push(chunk as Buffer);
       }
 
       return Buffer.concat(chunks);
