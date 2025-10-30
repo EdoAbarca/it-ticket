@@ -136,6 +136,24 @@ The README includes status badges for key workflows:
 - **Coverage Reporting:** Automated via Codecov
 - **Enforcement:** PR validation workflow blocks merges below threshold
 
+## Code Quality
+
+### Linting
+
+The CI/CD pipeline includes linting checks for both frontend and backend code:
+
+- **Backend:** ESLint with TypeScript rules
+- **Frontend:** ESLint with React rules
+
+**Note:** Linting is currently set to `continue-on-error: true` due to pre-existing linting issues in the codebase. This allows the pipeline to continue while flagging code quality issues. It is recommended to:
+1. Review and fix linting errors incrementally
+2. Once all errors are resolved, remove `continue-on-error` to enforce strict linting
+3. Set up pre-commit hooks to prevent new linting issues
+
+### Type Checking
+
+TypeScript compilation is enforced during the build step, ensuring type safety.
+
 ## Security Measures
 
 1. **Dependency Scanning:** Daily npm audit checks

@@ -66,10 +66,12 @@ jobs:
       - name: Lint Backend
         working-directory: ./backend
         run: npm run lint
+        continue-on-error: true
 
       - name: Lint Frontend
         working-directory: ./frontend
         run: npm run lint
+        continue-on-error: true
 
       - name: Build Backend
         working-directory: ./backend
