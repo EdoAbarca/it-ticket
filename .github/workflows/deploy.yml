@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to AWS
 
 on:
   workflow_dispatch:
@@ -14,17 +14,24 @@ on:
         description: 'Version tag to deploy (leave empty for latest)'
         required: false
         type: string
+      terraform_action:
+        description: 'Terraform action (plan or apply)'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
 
 jobs:
-  deploy-staging:
-    name: Deploy to Staging
-    if: github.event.inputs.environment == 'staging'
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
     environment:
-      name: staging
-      url: https://staging.example.com
+      name: ${{ github.event.inputs.environment }}
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -32,115 +39,139 @@ jobs:
         with:
           ref: ${{ github.event.inputs.version || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          node-version: 20
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build Application
-        run: |
-          echo "Building application for staging..."
-          # Add your staging build commands here
-          # Example: docker build, npm build, etc.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
-      - name: Deploy to Staging
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Format Check
+        working-directory: ./terraform
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Validate
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ./terraform
         run: |
-          echo "Deploying to staging environment..."
-          # Add your staging deployment commands here
-          # Example: docker push, ssh deployment, cloud provider CLI, etc.
+          terraform plan \
+            -var="environment=${{ github.event.inputs.environment }}" \
+            -var="aws_region=${{ secrets.AWS_REGION }}" \
+            -out=tfplan
+
+      - name: Terraform Apply
+        if: github.event.inputs.terraform_action == 'apply'
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get Terraform Outputs
+        if: github.event.inputs.terraform_action == 'apply'
+        id: terraform
+        working-directory: ./terraform
+        run: |
+          echo "alb_dns_name=$(terraform output -raw alb_dns_name)" >> $GITHUB_OUTPUT
+          echo "ecr_backend_url=$(terraform output -raw ecr_backend_repository_url)" >> $GITHUB_OUTPUT
+          echo "ecr_frontend_url=$(terraform output -raw ecr_frontend_repository_url)" >> $GITHUB_OUTPUT
+          echo "ecs_cluster=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
+          echo "ecs_service=$(terraform output -raw ecs_service_name)" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        if: github.event.inputs.terraform_action == 'apply'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Backend Docker Image
+        if: github.event.inputs.terraform_action == 'apply'
+        working-directory: ./backend
+        run: |
+          docker build -t ${{ steps.terraform.outputs.ecr_backend_url }}:latest .
+          docker push ${{ steps.terraform.outputs.ecr_backend_url }}:latest
+          
+          # Also tag with commit SHA for rollback capability
+          docker tag ${{ steps.terraform.outputs.ecr_backend_url }}:latest \
+            ${{ steps.terraform.outputs.ecr_backend_url }}:${{ github.sha }}
+          docker push ${{ steps.terraform.outputs.ecr_backend_url }}:${{ github.sha }}
+
+      - name: Build and Push Frontend Docker Image
+        if: github.event.inputs.terraform_action == 'apply'
+        working-directory: ./frontend
+        run: |
+          # Set API URL for build
+          export VITE_API_URL=http://${{ steps.terraform.outputs.alb_dns_name }}
+          
+          docker build -t ${{ steps.terraform.outputs.ecr_frontend_url }}:latest .
+          docker push ${{ steps.terraform.outputs.ecr_frontend_url }}:latest
+          
+          # Also tag with commit SHA for rollback capability
+          docker tag ${{ steps.terraform.outputs.ecr_frontend_url }}:latest \
+            ${{ steps.terraform.outputs.ecr_frontend_url }}:${{ github.sha }}
+          docker push ${{ steps.terraform.outputs.ecr_frontend_url }}:${{ github.sha }}
+
+      - name: Update ECS Service
+        if: github.event.inputs.terraform_action == 'apply'
+        run: |
+          aws ecs update-service \
+            --cluster ${{ steps.terraform.outputs.ecs_cluster }} \
+            --service ${{ steps.terraform.outputs.ecs_service }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Wait for ECS Service Stability
+        if: github.event.inputs.terraform_action == 'apply'
+        run: |
+          echo "Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster ${{ steps.terraform.outputs.ecs_cluster }} \
+            --services ${{ steps.terraform.outputs.ecs_service }} \
+            --region ${{ secrets.AWS_REGION }}
 
       - name: Run Smoke Tests
+        if: github.event.inputs.terraform_action == 'apply'
         run: |
-          echo "Running smoke tests on staging..."
-          # Add smoke test commands here
-          # Example: curl health checks, basic API tests
+          echo "Running smoke tests..."
+          sleep 30
+          
+          # Test backend health endpoint
+          curl -f http://${{ steps.terraform.outputs.alb_dns_name }}/health || exit 1
+          
+          # Test frontend
+          curl -f http://${{ steps.terraform.outputs.alb_dns_name }}/ || exit 1
+          
+          echo "Smoke tests passed!"
+
+      - name: Deployment Summary
+        if: github.event.inputs.terraform_action == 'apply'
+        run: |
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Application URL:** http://${{ steps.terraform.outputs.alb_dns_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Image:** ${{ steps.terraform.outputs.ecr_backend_url }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend Image:** ${{ steps.terraform.outputs.ecr_frontend_url }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**ECS Cluster:** ${{ steps.terraform.outputs.ecs_cluster }}" >> $GITHUB_STEP_SUMMARY
+          echo "**ECS Service:** ${{ steps.terraform.outputs.ecs_service }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify Deployment Success
-        if: success()
+        if: success() && github.event.inputs.terraform_action == 'apply'
         run: |
-          echo "Staging deployment successful!"
-          # Add notification logic here (Slack, email, etc.)
+          echo "✅ Deployment to ${{ github.event.inputs.environment }} successful!"
+          echo "Application is available at: http://${{ steps.terraform.outputs.alb_dns_name }}"
 
       - name: Notify Deployment Failure
         if: failure()
         run: |
-          echo "Staging deployment failed!"
-          # Add failure notification logic here
-
-  deploy-production:
-    name: Deploy to Production
-    if: github.event.inputs.environment == 'production'
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://example.com
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.version || github.ref }}
-
-      - name: Validate Version
-        run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
-            echo "Warning: No version specified, using latest commit"
-          else
-            echo "Deploying version: ${{ github.event.inputs.version }}"
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Build Application
-        run: |
-          echo "Building application for production..."
-          # Add your production build commands here
-          # Example: docker build with production tags
-
-      - name: Run Pre-deployment Checks
-        run: |
-          echo "Running pre-deployment checks..."
-          # Add pre-deployment validation
-          # Example: config validation, database migration dry-run
-
-      - name: Create Backup
-        run: |
-          echo "Creating backup before deployment..."
-          # Add backup logic here
-          # Example: database backup, configuration backup
-
-      - name: Deploy to Production
-        run: |
-          echo "Deploying to production environment..."
-          # Add your production deployment commands here
-          # Example: docker push, blue-green deployment, rolling update
-
-      - name: Run Smoke Tests
-        run: |
-          echo "Running smoke tests on production..."
-          # Add smoke test commands here
-          # Example: curl health checks, critical path tests
-
-      - name: Rollback on Failure
-        if: failure()
-        run: |
-          echo "Deployment failed! Initiating rollback..."
-          # Add rollback logic here
-          # Example: restore from backup, revert to previous version
-
-      - name: Notify Deployment Success
-        if: success()
-        run: |
-          echo "Production deployment successful!"
-          # Add notification logic here (Slack, email, etc.)
-
-      - name: Notify Deployment Failure
-        if: failure()
-        run: |
-          echo "Production deployment failed!"
-          # Add failure notification logic here
+          echo "❌ Deployment to ${{ github.event.inputs.environment }} failed!"
+          echo "Please check the logs for details."

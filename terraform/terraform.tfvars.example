@@ -1,0 +1,39 @@
+# AWS Configuration
+aws_region   = "us-east-1"
+environment  = "production"
+project_name = "it-ticket"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+
+# RDS Configuration
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+db_name              = "appdb"
+db_username          = "postgres"
+
+# ECS Configuration
+ecs_task_cpu              = "512"
+ecs_task_memory           = "1024"
+backend_container_cpu     = 256
+backend_container_memory  = 512
+frontend_container_cpu    = 256
+frontend_container_memory = 512
+
+# Application Configuration
+backend_port     = 3000
+frontend_port    = 80
+app_desired_count = 1
+app_min_capacity  = 1
+app_max_capacity  = 4
+
+# Health Check Configuration
+health_check_path = "/health"
+
+# Application Secrets (Set these via environment variables or AWS Systems Manager Parameter Store)
+# jwt_secret      = ""  # Will be auto-generated if not provided
+# email_host      = "smtp.example.com"
+# email_port      = 587
+# email_user      = ""
+# email_password  = ""
+# email_from      = "noreply@example.com"
