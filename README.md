@@ -1,5 +1,9 @@
 # IT Ticket Management System
 
+[![CI](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml)
+[![Security Scanning](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml)
+[![Docker Build](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml)
+
 A modern, full-stack IT ticket management system built with React, NestJS, and PostgreSQL. Fully containerized with Docker for easy deployment.
 
 ## Features
