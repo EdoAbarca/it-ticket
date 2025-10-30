@@ -24,6 +24,7 @@ describe('LoggingInterceptor', () => {
       url: '/test',
       body: {},
       ip: '127.0.0.1',
+      headers: { host: 'localhost:3000' },
       get: jest.fn().mockReturnValue('test-agent'),
     };
 
@@ -72,6 +73,7 @@ describe('LoggingInterceptor', () => {
       url: '/test',
       body: {},
       ip: '127.0.0.1',
+      headers: { host: 'localhost:3000' },
       get: jest.fn().mockReturnValue('test-agent'),
     };
 
@@ -117,6 +119,7 @@ describe('LoggingInterceptor', () => {
       url: '/test',
       body: {},
       ip: '127.0.0.1',
+      headers: { host: 'localhost:3000' },
       get: jest.fn().mockReturnValue(undefined),
     };
 

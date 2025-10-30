@@ -14,15 +14,19 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    const { method, url, ip } = request;
+    const { method, ip } = request;
     const userAgent = request.get('user-agent') || '';
     const startTime = Date.now();
+    
+    // Sanitize URL to remove query parameters that might contain sensitive data
+    const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+    const sanitizedUrl = url.pathname;
 
     // Log incoming request
     this.logger.log({
       message: 'Incoming request',
       method,
-      url,
+      url: sanitizedUrl,
       ip,
       userAgent,
     });
@@ -37,7 +41,7 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.log({
             message: 'Request completed',
             method,
-            url,
+            url: sanitizedUrl,
             statusCode,
             responseTime: `${responseTime}ms`,
           });
@@ -48,7 +52,7 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.error({
             message: 'Request failed',
             method,
-            url,
+            url: sanitizedUrl,
             error: error.message,
             stack: error.stack,
             responseTime: `${responseTime}ms`,

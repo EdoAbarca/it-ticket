@@ -64,7 +64,7 @@ export class MonitoringService {
       status: overallStatus,
       timestamp,
       uptime,
-      version: process.env.npm_package_version || '1.0.0',
+      version: this.getVersion(),
       checks: {
         database: databaseCheck,
         memory: memoryCheck,
@@ -100,20 +100,35 @@ export class MonitoringService {
     total: number;
     percentage: number;
   } {
-    const memUsage = process.memoryUsage();
-    const totalMemory = memUsage.heapTotal;
-    const usedMemory = memUsage.heapUsed;
-    const percentage = (usedMemory / totalMemory) * 100;
+    const { used, total, percentage } = this.getMemoryUsage();
 
     // Consider unhealthy if memory usage is above 90%
     const status = percentage > 90 ? 'unhealthy' : 'healthy';
 
     return {
       status,
+      used,
+      total,
+      percentage,
+    };
+  }
+
+  private getMemoryUsage(): { used: number; total: number; percentage: number } {
+    const memUsage = process.memoryUsage();
+    const totalMemory = memUsage.heapTotal;
+    const usedMemory = memUsage.heapUsed;
+    const percentage = (usedMemory / totalMemory) * 100;
+
+    return {
       used: usedMemory,
       total: totalMemory,
       percentage: Math.round(percentage * 100) / 100,
     };
+  }
+
+  private getVersion(): string {
+    // Try to get version from package.json or use BUILD_VERSION env var
+    return process.env.BUILD_VERSION || process.env.npm_package_version || '1.0.0';
   }
 
   getMetrics(): MetricsResult {
