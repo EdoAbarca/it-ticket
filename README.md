@@ -11,6 +11,7 @@ A modern, full-stack IT ticket management system built with React, NestJS, and P
 - 🔐 **Authentication**: Secure JWT-based authentication
 - 📊 **Admin Dashboard**: Comprehensive ticket and user management
 - 🗄️ **Database Management**: Migration and backup management for DevOps
+- 📈 **Application Monitoring**: Health checks, metrics, and structured logging
 - 🐳 **Docker Ready**: Fully containerized for consistent deployments
 
 ## Tech Stack
@@ -191,6 +192,13 @@ npm run lint         # Lint code
 
 For detailed documentation, see [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)
 
+### Application Monitoring
+- `GET /monitoring/health` - Application health check
+- `GET /monitoring/metrics` - Performance metrics (Admin only)
+- `GET /monitoring/logs` - Application logs (Admin only)
+
+For detailed documentation, see [MONITORING.md](./MONITORING.md)
+
 ## Environment Variables
 
 ### Root `.env`
@@ -262,4 +270,5 @@ For issues and questions:
 - Check [DOCKER.md](./DOCKER.md) for containerization issues
 - Check [TICKET_FEATURE.md](./TICKET_FEATURE.md) for feature documentation
 - Check [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) for database management and backup/restore procedures
+- Check [MONITORING.md](./MONITORING.md) for application monitoring and health checks
 - Open an issue in the repository
