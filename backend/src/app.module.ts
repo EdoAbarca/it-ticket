@@ -6,6 +6,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DatabaseModule } from './database/database.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DatabaseModule } from './database/database.module';
     UsersModule,
     NotificationsModule,
     DatabaseModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [AppService],
