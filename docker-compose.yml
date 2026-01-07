@@ -22,7 +22,7 @@ services:
   backend:
     build:
       context: ./backend
-      target: builder  # Use builder stage for development
+      target: development  # Use development stage
     container_name: backend
     env_file:
       - ./backend/.env
@@ -43,13 +43,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    command: npm run start:dev
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      target: build  # Use build stage for development
+      target: development  # Use development stage
     container_name: frontend
     env_file:
       - ./frontend/.env
@@ -69,7 +68,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    command: npm run dev -- --host
     restart: unless-stopped
 
 volumes:
