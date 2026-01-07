@@ -50,11 +50,15 @@ jobs:
             echo "ecr_frontend_repository=${{ secrets.ECR_FRONTEND_REPOSITORY_PRODUCTION }}" >> $GITHUB_OUTPUT
             echo "ecs_cluster=${{ secrets.ECS_CLUSTER_PRODUCTION }}" >> $GITHUB_OUTPUT
             echo "ecs_service=${{ secrets.ECS_SERVICE_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "app_url=${{ secrets.APP_URL_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "api_url=${{ secrets.API_URL_PRODUCTION }}" >> $GITHUB_OUTPUT
           else
             echo "ecr_backend_repository=${{ secrets.ECR_BACKEND_REPOSITORY_STAGING }}" >> $GITHUB_OUTPUT
             echo "ecr_frontend_repository=${{ secrets.ECR_FRONTEND_REPOSITORY_STAGING }}" >> $GITHUB_OUTPUT
             echo "ecs_cluster=${{ secrets.ECS_CLUSTER_STAGING }}" >> $GITHUB_OUTPUT
             echo "ecs_service=${{ secrets.ECS_SERVICE_STAGING }}" >> $GITHUB_OUTPUT
+            echo "app_url=${{ secrets.APP_URL_STAGING }}" >> $GITHUB_OUTPUT
+            echo "api_url=${{ secrets.API_URL_STAGING }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and Push Backend Docker Image
@@ -70,11 +74,9 @@ jobs:
 
       - name: Build and Push Frontend Docker Image
         working-directory: ./frontend
-        env:
-          VITE_API_URL: ${{ secrets.API_URL }}
         run: |
           docker build \
-            --build-arg VITE_API_URL=${{ secrets.API_URL }} \
+            --build-arg VITE_API_URL=${{ steps.env-vars.outputs.api_url }} \
             -t ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest .
           docker push ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest
           
@@ -105,10 +107,10 @@ jobs:
           sleep 30
           
           # Test backend health endpoint
-          curl -f ${{ secrets.APP_URL }}/health || exit 1
+          curl -f ${{ steps.env-vars.outputs.app_url }}/health || exit 1
           
           # Test frontend
-          curl -f ${{ secrets.APP_URL }}/ || exit 1
+          curl -f ${{ steps.env-vars.outputs.app_url }}/ || exit 1
           
           echo "Smoke tests passed!"
 
@@ -117,7 +119,7 @@ jobs:
           echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Application URL:** ${{ secrets.APP_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Application URL:** ${{ steps.env-vars.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
           echo "**Backend Image:** ${{ steps.env-vars.outputs.ecr_backend_repository }}:latest" >> $GITHUB_STEP_SUMMARY
           echo "**Frontend Image:** ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest" >> $GITHUB_STEP_SUMMARY
           echo "**Commit SHA:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
@@ -127,7 +129,7 @@ jobs:
         if: success()
         run: |
           echo "✅ Deployment to ${{ github.event.inputs.environment }} successful!"
-          echo "Application is available at: ${{ secrets.APP_URL }}"
+          echo "Application is available at: ${{ steps.env-vars.outputs.app_url }}"
 
       - name: Notify Deployment Failure
         if: failure()
