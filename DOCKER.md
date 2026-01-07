@@ -105,7 +105,7 @@ The services will be available at:
 - **Health Check**: Validates database connection every 10s
 
 ### Backend Service
-- **Build**: ./backend (builder stage for development)
+- **Build**: ./backend (development stage)
 - **Container Name**: backend
 - **Port**: 3000 (mapped from ${BACKEND_PORT})
 - **Depends On**: postgres (with health check)
@@ -118,7 +118,7 @@ The services will be available at:
   - Multi-stage build
 
 ### Frontend Service
-- **Build**: ./frontend (build stage for development)
+- **Build**: ./frontend (development stage)
 - **Container Name**: frontend
 - **Port**: 5173 (mapped from ${FRONTEND_PORT}) - Vite dev server
 - **Depends On**: backend (with health check)
