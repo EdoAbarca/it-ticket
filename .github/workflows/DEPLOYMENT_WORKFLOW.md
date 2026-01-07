@@ -329,12 +329,7 @@ To reduce costs:
 
 ### Cleanup Resources
 
-To completely remove infrastructure and stop costs:
-
-```bash
-cd terraform
-terraform destroy
-```
+To completely remove infrastructure and stop costs, use the Terraform configuration from the dedicated infrastructure repository.
 
 **Warning**: This deletes all resources including the database. Create backups first!
 
