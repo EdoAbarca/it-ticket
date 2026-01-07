@@ -57,27 +57,3 @@ services:
           memory: 128M
     # Don't expose port directly in production - use reverse proxy
     ports: []
-
-  # Reverse proxy for production
-  nginx-proxy:
-    image: nginx:alpine
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx-proxy.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - frontend
-      - backend
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M

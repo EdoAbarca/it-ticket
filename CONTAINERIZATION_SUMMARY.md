@@ -129,11 +129,7 @@ Comprehensive guide covering:
 - Security features
 
 #### Production Setup Guide
-- `nginx-proxy.conf.example` - Example reverse proxy configuration
-  - HTTPS/SSL configuration
-  - Rate limiting
-  - Security headers
-  - Upstream definitions
+- Configuration is managed through AWS infrastructure (ALB/nginx) in dedicated infrastructure repositories
 
 ## Key Features
 
@@ -227,13 +223,12 @@ make clean          # Clean everything
 1. `DOCKER.md` - Docker documentation
 2. `docker-compose.dev.yml` - Development config
 3. `docker-compose.prod.yml` - Production config
-4. `nginx-proxy.conf.example` - Reverse proxy example
-5. `.dockerignore` - Root level ignore
-6. `backend/.dockerignore` - Backend ignore
-7. `frontend/.dockerignore` - Frontend ignore
-8. `frontend/nginx.conf` - Frontend nginx config
-9. `.github/workflows/docker.yml` - CI workflow
-10. `scripts/validate-docker.sh` - Validation script
+4. `.dockerignore` - Root level ignore
+5. `backend/.dockerignore` - Backend ignore
+6. `frontend/.dockerignore` - Frontend ignore
+7. `frontend/nginx.conf` - Frontend nginx config
+8. `.github/workflows/docker.yml` - CI workflow
+9. `scripts/validate-docker.sh` - Validation script
 
 ### Modified Files (5)
 1. `README.md` - Added Docker quick start
