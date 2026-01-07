@@ -593,7 +593,9 @@ Configure these secrets in **GitHub Repository Settings** → **Secrets and vari
 | `ECS_CLUSTER_STAGING` | ECS cluster name | `it-ticket-cluster-staging` | Yes |
 | `ECS_SERVICE_STAGING` | ECS service name | `it-ticket-service-staging` | Yes |
 | `APP_URL_STAGING` | Application URL | `http://staging.example.com` | Yes |
-| `API_URL_STAGING` | API URL for frontend | `http://staging.example.com/api` | Yes |
+| `API_URL_STAGING` | API URL for frontend | `http://staging.example.com` or `http://staging.example.com/api` | Yes |
+
+**Note**: `API_URL` should match your backend's base URL. If your backend is served on a subpath (e.g., `/api`), include that in the URL. If the backend is at the root, use just the domain.
 
 #### Production Environment Secrets
 
@@ -604,7 +606,9 @@ Configure these secrets in **GitHub Repository Settings** → **Secrets and vari
 | `ECS_CLUSTER_PRODUCTION` | ECS cluster name | `it-ticket-cluster-production` | Yes |
 | `ECS_SERVICE_PRODUCTION` | ECS service name | `it-ticket-service-production` | Yes |
 | `APP_URL_PRODUCTION` | Application URL | `https://app.example.com` | Yes |
-| `API_URL_PRODUCTION` | API URL for frontend | `https://app.example.com/api` | Yes |
+| `API_URL_PRODUCTION` | API URL for frontend | `https://app.example.com` or `https://app.example.com/api` | Yes |
+
+**Note**: `API_URL` should match your backend's base URL. If your backend is served on a subpath (e.g., `/api`), include that in the URL. If the backend is at the root, use just the domain.
 
 ### Application Environment Variables
 
@@ -683,6 +687,10 @@ export ECR_FRONTEND=$(terraform output -raw ecr_frontend_repository_url)
 export ECS_CLUSTER=$(terraform output -raw ecs_cluster_name)
 export ECS_SERVICE=$(terraform output -raw ecs_service_name)
 export APP_URL="http://$(terraform output -raw alb_dns_name)"
+export API_URL="http://$(terraform output -raw alb_dns_name)"
+
+# Note: Adjust API_URL if your backend is served on a different path (e.g., /api)
+# export API_URL="http://$(terraform output -raw alb_dns_name)/api"
 
 # Add these to GitHub secrets manually or via CLI
 gh secret set ECR_BACKEND_REPOSITORY_PRODUCTION -b "$ECR_BACKEND"
