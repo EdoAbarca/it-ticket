@@ -2,15 +2,15 @@
 
 ## Overview
 
-This application is fully containerized using Docker and Docker Compose, allowing for consistent deployment across different environments.
+This application is fully containerized using Docker and Docker Compose for local development. The single `docker-compose.yml` file is optimized for the development workflow with hot-reload support and live code updates.
 
 ## Architecture
 
-The application consists of three main services:
+The application consists of three main services configured for local development:
 
 1. **PostgreSQL Database** - Stores application data
-2. **Backend API** - NestJS application providing REST API
-3. **Frontend** - React application served via Nginx
+2. **Backend API** - NestJS application with hot-reload for development
+3. **Frontend** - React application with Vite dev server for instant updates
 
 ## Prerequisites
 
@@ -105,29 +105,29 @@ The services will be available at:
 - **Health Check**: Validates database connection every 10s
 
 ### Backend Service
-- **Build**: ./backend
+- **Build**: ./backend (builder stage for development)
 - **Container Name**: backend
 - **Port**: 3000 (mapped from ${BACKEND_PORT})
 - **Depends On**: postgres (with health check)
 - **Health Check**: HTTP GET /health every 30s
 - **Features**:
+  - Hot-reload support with volume mounts
   - Automatic database migration on startup
   - Waits for database to be ready
-  - Production-optimized build
-  - Multi-stage build for smaller image size
+  - Development mode with `npm run start:dev`
+  - Multi-stage build
 
 ### Frontend Service
-- **Build**: ./frontend
+- **Build**: ./frontend (build stage for development)
 - **Container Name**: frontend
-- **Port**: 80 (mapped from ${FRONTEND_PORT}:80)
+- **Port**: 5173 (mapped from ${FRONTEND_PORT}) - Vite dev server
 - **Depends On**: backend (with health check)
 - **Health Check**: HTTP GET / every 30s
 - **Features**:
-  - Multi-stage build (build + nginx)
-  - Optimized nginx configuration
-  - Gzip compression enabled
-  - Security headers configured
-  - API proxy to backend
+  - Hot-reload support with volume mounts
+  - Vite dev server for instant updates
+  - Live code changes without rebuild
+  - Development mode with `npm run dev`
 
 ## Docker Files
 
@@ -244,37 +244,25 @@ docker exec -i postgres psql -U postgres appdb < backup.sql
 
 ## Production Deployment
 
-### Security Considerations
+**Note**: This Docker Compose configuration is optimized for local development. For production deployments, this project uses AWS infrastructure automation with Terraform and ECS Fargate. See [AWS_DEPLOYMENT.md](./AWS_DEPLOYMENT.md) for production deployment instructions.
+
+### Security Considerations for Local Development
 
 1. **Environment Variables**: Never commit `.env` files with sensitive data
-2. **JWT Secret**: Use a strong, random secret in production
+2. **JWT Secret**: Use a strong, random secret
 3. **Database Password**: Use a strong password
-4. **HTTPS**: Use a reverse proxy (nginx, Traefik, etc.) with SSL certificates
-5. **Firewall**: Only expose necessary ports
+4. **Network Access**: The development configuration exposes ports for local access
 
-### Recommended Production Setup
+### AWS Production Deployment
 
-1. Use Docker Swarm or Kubernetes for orchestration
-2. Implement container secrets management
-3. Set up automated backups for the database
-4. Use a reverse proxy with SSL/TLS
-5. Implement monitoring and logging (Prometheus, Grafana, ELK stack)
-6. Configure resource limits for containers
+For production, the application is deployed to AWS using:
+- ECS Fargate for serverless container orchestration
+- RDS for managed PostgreSQL database
+- Application Load Balancer for traffic distribution
+- CloudWatch for monitoring and logging
+- Terraform for infrastructure as code
 
-Example production `docker-compose.yml` additions:
-```yaml
-services:
-  backend:
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
-```
+Refer to [AWS_DEPLOYMENT.md](./AWS_DEPLOYMENT.md) for complete production deployment documentation.
 
 ## Troubleshooting
 
@@ -323,9 +311,23 @@ BACKEND_PORT=3001
 
 ## Development Workflow
 
-### Local Development with Hot Reload
+### Hot Reload (Built-in)
 
-For development, you may want to run services locally instead of in containers:
+The Docker Compose configuration includes hot-reload support for both backend and frontend:
+
+**Backend**: 
+- Source code changes in `backend/src/` are automatically detected
+- NestJS restarts the application when files change
+- No rebuild required during development
+
+**Frontend**:
+- Source code changes in `frontend/src/` are automatically detected
+- Vite dev server provides instant hot module replacement (HMR)
+- Changes appear in browser immediately
+
+### Local Development without Docker
+
+For development outside of Docker (e.g., for debugging):
 
 ```bash
 # Backend (in backend directory)

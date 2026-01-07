@@ -23,23 +23,14 @@ This document summarizes the containerization implementation for US-17: Applicat
   - Alpine-based images for minimal size
 
 #### Docker Compose
-- **docker-compose.yml**: Base configuration with 3 services
+- **docker-compose.yml**: Single configuration file optimized for local development
   - PostgreSQL database with persistent storage
-  - Backend NestJS application
-  - Frontend React application with Nginx
+  - Backend NestJS application with hot-reload support
+  - Frontend React application with Vite dev server
   - Health checks for all services
   - Service dependencies properly configured
-  
-- **docker-compose.dev.yml**: Development overrides
-  - Hot reload support
-  - Volume mounts for live code updates
-  - Development environment variables
-
-- **docker-compose.prod.yml**: Production configuration
-  - Resource limits and reservations
-  - Logging configuration
-  - Nginx reverse proxy for SSL/HTTPS
-  - No direct port exposure (goes through proxy)
+  - Volume mounts for live code updates during development
+  - Development environment variables configured
 
 #### Optimization Files
 - **.dockerignore files**: Prevent unnecessary files from being copied
@@ -68,7 +59,7 @@ This document summarizes the containerization implementation for US-17: Applicat
 ### 3. DevOps Tools
 
 #### Enhanced Makefile
-20+ commands for Docker operations:
+15+ commands for Docker operations:
 - `make help` - Show all available commands
 - `make up` - Start all services
 - `make down` - Stop all services
@@ -78,8 +69,6 @@ This document summarizes the containerization implementation for US-17: Applicat
 - `make health` - Check service health
 - `make backup` - Backup database
 - `make restore FILE=backup.sql` - Restore database
-- `make dev` - Start in development mode
-- `make prod` - Start in production mode
 - `make test` - Run tests in container
 - `make migrate` - Run database migrations
 - And more...
@@ -204,12 +193,7 @@ make up
 
 ### Development
 ```bash
-make dev  # Start with hot reload
-```
-
-### Production
-```bash
-make prod  # Start with production config
+make up  # Start with hot reload support
 ```
 
 ### Maintenance
@@ -223,17 +207,15 @@ make clean          # Clean everything
 
 ## Files Changed/Added
 
-### New Files (13)
+### New Files (11)
 1. `DOCKER.md` - Docker documentation
-2. `docker-compose.dev.yml` - Development config
-3. `docker-compose.prod.yml` - Production config
-4. `nginx-proxy.conf.example` - Reverse proxy example
-5. `.dockerignore` - Root level ignore
-6. `backend/.dockerignore` - Backend ignore
-7. `frontend/.dockerignore` - Frontend ignore
-8. `frontend/nginx.conf` - Frontend nginx config
-9. `.github/workflows/docker.yml` - CI workflow
-10. `scripts/validate-docker.sh` - Validation script
+2. `nginx-proxy.conf.example` - Reverse proxy example
+3. `.dockerignore` - Root level ignore
+4. `backend/.dockerignore` - Backend ignore
+5. `frontend/.dockerignore` - Frontend ignore
+6. `frontend/nginx.conf` - Frontend nginx config
+7. `.github/workflows/docker.yml` - CI workflow
+8. `scripts/validate-docker.sh` - Validation script
 
 ### Modified Files (5)
 1. `README.md` - Added Docker quick start
