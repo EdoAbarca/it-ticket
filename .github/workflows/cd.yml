@@ -87,11 +87,18 @@ jobs:
 
       - name: Update ECS Service
         run: |
+          echo "Updating ECS service with new images..."
+          
+          # Force new deployment with the latest images
+          # Note: This assumes the ECS task definition is configured to use :latest tags
+          # or is managed by Terraform to automatically reference the ECR repositories
           aws ecs update-service \
             --cluster ${{ steps.env-vars.outputs.ecs_cluster }} \
             --service ${{ steps.env-vars.outputs.ecs_service }} \
             --force-new-deployment \
             --region ${{ secrets.AWS_REGION }}
+          
+          echo "ECS service update initiated"
 
       - name: Wait for ECS Service Stability
         run: |
@@ -104,15 +111,51 @@ jobs:
       - name: Run Smoke Tests
         run: |
           echo "Running smoke tests..."
+          
+          # Wait for service to be fully deployed
           sleep 30
           
-          # Test backend health endpoint
-          curl -f ${{ steps.env-vars.outputs.app_url }}/health || exit 1
+          # Retry logic for health checks
+          max_retries=5
+          retry_count=0
+          retry_delay=10
           
-          # Test frontend
-          curl -f ${{ steps.env-vars.outputs.app_url }}/ || exit 1
+          echo "Testing backend health endpoint..."
+          while [ $retry_count -lt $max_retries ]; do
+            if curl -f -s -o /dev/null ${{ steps.env-vars.outputs.app_url }}/health; then
+              echo "✓ Backend health check passed"
+              break
+            else
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -eq $max_retries ]; then
+                echo "❌ Backend health check failed after $max_retries attempts"
+                exit 1
+              fi
+              echo "Backend not ready, retrying in ${retry_delay}s... (attempt $retry_count/$max_retries)"
+              sleep $retry_delay
+            fi
+          done
           
-          echo "Smoke tests passed!"
+          # Reset retry counter for frontend test
+          retry_count=0
+          
+          echo "Testing frontend availability..."
+          while [ $retry_count -lt $max_retries ]; do
+            if curl -f -s -o /dev/null ${{ steps.env-vars.outputs.app_url }}/; then
+              echo "✓ Frontend availability check passed"
+              break
+            else
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -eq $max_retries ]; then
+                echo "❌ Frontend availability check failed after $max_retries attempts"
+                exit 1
+              fi
+              echo "Frontend not ready, retrying in ${retry_delay}s... (attempt $retry_count/$max_retries)"
+              sleep $retry_delay
+            fi
+          done
+          
+          echo "All smoke tests passed!"
 
       - name: Deployment Summary
         run: |

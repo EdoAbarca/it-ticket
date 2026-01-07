@@ -149,8 +149,26 @@ The CD workflow expects the following AWS infrastructure to be **already provisi
 3. **ECS (Elastic Container Service)**
    - ECS Cluster using Fargate launch type
    - ECS Service with task definition
+   - **Task definition must use `:latest` tags or be configured to pull from ECR repositories**
    - Auto-scaling policies (optional)
    - Service discovery (optional)
+   
+   **Important**: The ECS task definition should reference container images using `:latest` tags:
+   ```json
+   {
+     "containerDefinitions": [
+       {
+         "name": "backend",
+         "image": "123456.dkr.ecr.us-east-1.amazonaws.com/it-ticket-backend-production:latest"
+       },
+       {
+         "name": "frontend",
+         "image": "123456.dkr.ecr.us-east-1.amazonaws.com/it-ticket-frontend-production:latest"
+       }
+     ]
+   }
+   ```
+   This ensures the `--force-new-deployment` flag triggers ECS to pull the newly pushed images.
 
 4. **Load Balancer**
    - Application Load Balancer in public subnets
