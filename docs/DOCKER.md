@@ -133,27 +133,32 @@ The services will be available at:
 
 ### Frontend Dockerfile
 
-Multi-stage build:
-1. **Build Stage**: Builds the React application using Node.js
-2. **Production Stage**: Serves static files using Nginx
+Multi-stage build for both development and production:
+1. **Base Stage**: Installs dependencies and copies source code
+2. **Development Stage**: Runs Vite dev server for hot-reload (used by docker-compose.yml)
+3. **Build Stage**: Builds the React application for production
+4. **Production Stage**: Serves static files using Nginx
 
 Key features:
 - Uses Node 20 Alpine for smaller image size
 - `.dockerignore` excludes unnecessary files
-- Custom nginx configuration for SPA routing
+- Development stage with Vite dev server on port 5173
+- Production stage with Nginx for optimized serving
 - Health check endpoint
-- API proxy configuration
 
 ### Backend Dockerfile
 
-Multi-stage build:
-1. **Builder Stage**: Compiles TypeScript and generates Prisma client
-2. **Production Stage**: Runs the application with only production dependencies
+Multi-stage build for both development and production:
+1. **Base Stage**: Installs dependencies and generates Prisma client
+2. **Development Stage**: Runs NestJS in watch mode for hot-reload (used by docker-compose.yml)
+3. **Builder Stage**: Compiles TypeScript for production
+4. **Production Stage**: Runs the application with only production dependencies
 
 Key features:
 - Uses Node 20 Alpine for smaller image size
 - Prisma client generated at build time
-- Only production dependencies in final image
+- Development stage with `npm run start:dev`
+- Production stage with only production dependencies
 - Docker entrypoint script handles database migrations
 - Health check endpoint
 
