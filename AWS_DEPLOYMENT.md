@@ -415,10 +415,9 @@ aws ecs describe-tasks \
 ### Getting Help
 
 For additional support:
-1. Check [Terraform README](./terraform/README.md)
-2. Review AWS service documentation
-3. Check CloudWatch logs and metrics
-4. Open an issue in the GitHub repository
+1. Review AWS service documentation
+2. Check CloudWatch logs and metrics
+3. Open an issue in the GitHub repository
 
 ## Cost Optimization
 
@@ -502,7 +501,6 @@ After successful deployment:
 
 ## Additional Resources
 
-- [Terraform Configuration](./terraform/README.md)
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
 - [ECS Best Practices](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/)
 - [RDS Best Practices](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html)

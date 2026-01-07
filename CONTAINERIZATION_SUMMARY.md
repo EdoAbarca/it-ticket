@@ -85,13 +85,7 @@ This document summarizes the containerization implementation for US-17: Applicat
 - And more...
 
 #### Validation Script
-- `scripts/validate-docker.sh` - Automated validation
-  - Checks 54 different configuration aspects
-  - Verifies all required files exist
-  - Validates Docker Compose syntax
-  - Checks for proper health check configuration
-  - Validates security settings
-  - POSIX-compliant for portability
+Validation script has been moved to a separate repository for infrastructure management.
 
 ### 4. CI/CD Integration
 
@@ -233,7 +227,6 @@ make clean          # Clean everything
 7. `frontend/.dockerignore` - Frontend ignore
 8. `frontend/nginx.conf` - Frontend nginx config
 9. `.github/workflows/docker.yml` - CI workflow
-10. `scripts/validate-docker.sh` - Validation script
 
 ### Modified Files (5)
 1. `README.md` - Added Docker quick start
@@ -312,7 +305,6 @@ The containerization setup has been validated but not fully tested with actual b
 
 For issues:
 - See DOCKER.md for detailed troubleshooting
-- Check validation script output: `./scripts/validate-docker.sh`
 - View service logs: `make logs`
 - Check service health: `make health`
 

@@ -39,7 +39,6 @@ Configure these secrets in your GitHub repository:
 ### 3. Repository Setup
 
 Ensure the repository has:
-- Terraform configuration in `terraform/` directory
 - Docker files for backend and frontend
 - GitHub Actions workflow at `.github/workflows/deploy.yml`
 
@@ -371,7 +370,6 @@ After successful deployment:
 ## Additional Resources
 
 - [Main AWS Deployment Guide](../AWS_DEPLOYMENT.md)
-- [Terraform Configuration](../terraform/README.md)
 - [CI/CD Pipeline Documentation](../CICD.md)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [AWS ECS Best Practices](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/)
