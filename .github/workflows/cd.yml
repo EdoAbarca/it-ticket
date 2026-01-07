@@ -1,0 +1,136 @@
+name: Continuous Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version tag to deploy (leave empty for latest)'
+        required: false
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version || github.ref }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set environment-specific variables
+        id: env-vars
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            echo "ecr_backend_repository=${{ secrets.ECR_BACKEND_REPOSITORY_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "ecr_frontend_repository=${{ secrets.ECR_FRONTEND_REPOSITORY_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "ecs_cluster=${{ secrets.ECS_CLUSTER_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "ecs_service=${{ secrets.ECS_SERVICE_PRODUCTION }}" >> $GITHUB_OUTPUT
+          else
+            echo "ecr_backend_repository=${{ secrets.ECR_BACKEND_REPOSITORY_STAGING }}" >> $GITHUB_OUTPUT
+            echo "ecr_frontend_repository=${{ secrets.ECR_FRONTEND_REPOSITORY_STAGING }}" >> $GITHUB_OUTPUT
+            echo "ecs_cluster=${{ secrets.ECS_CLUSTER_STAGING }}" >> $GITHUB_OUTPUT
+            echo "ecs_service=${{ secrets.ECS_SERVICE_STAGING }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push Backend Docker Image
+        working-directory: ./backend
+        run: |
+          docker build -t ${{ steps.env-vars.outputs.ecr_backend_repository }}:latest .
+          docker push ${{ steps.env-vars.outputs.ecr_backend_repository }}:latest
+          
+          # Also tag with commit SHA for rollback capability
+          docker tag ${{ steps.env-vars.outputs.ecr_backend_repository }}:latest \
+            ${{ steps.env-vars.outputs.ecr_backend_repository }}:${{ github.sha }}
+          docker push ${{ steps.env-vars.outputs.ecr_backend_repository }}:${{ github.sha }}
+
+      - name: Build and Push Frontend Docker Image
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+        run: |
+          docker build \
+            --build-arg VITE_API_URL=${{ secrets.API_URL }} \
+            -t ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest .
+          docker push ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest
+          
+          # Also tag with commit SHA for rollback capability
+          docker tag ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest \
+            ${{ steps.env-vars.outputs.ecr_frontend_repository }}:${{ github.sha }}
+          docker push ${{ steps.env-vars.outputs.ecr_frontend_repository }}:${{ github.sha }}
+
+      - name: Update ECS Service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ steps.env-vars.outputs.ecs_cluster }} \
+            --service ${{ steps.env-vars.outputs.ecs_service }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Wait for ECS Service Stability
+        run: |
+          echo "Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster ${{ steps.env-vars.outputs.ecs_cluster }} \
+            --services ${{ steps.env-vars.outputs.ecs_service }} \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests..."
+          sleep 30
+          
+          # Test backend health endpoint
+          curl -f ${{ secrets.APP_URL }}/health || exit 1
+          
+          # Test frontend
+          curl -f ${{ secrets.APP_URL }}/ || exit 1
+          
+          echo "Smoke tests passed!"
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Application URL:** ${{ secrets.APP_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Image:** ${{ steps.env-vars.outputs.ecr_backend_repository }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend Image:** ${{ steps.env-vars.outputs.ecr_frontend_repository }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed at:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "✅ Deployment to ${{ github.event.inputs.environment }} successful!"
+          echo "Application is available at: ${{ secrets.APP_URL }}"
+
+      - name: Notify Deployment Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment to ${{ github.event.inputs.environment }} failed!"
+          echo "Please check the logs for details."
