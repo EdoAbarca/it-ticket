@@ -62,12 +62,6 @@ restore: ## Restore database from backup.sql (use: make restore FILE=backup.sql)
 	docker exec -i postgres psql -U ${POSTGRES_USER} ${POSTGRES_DB} < $(FILE)
 	@echo "Database restored from $(FILE)"
 
-dev: ## Start in development mode with hot reload
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-prod: ## Start in production mode
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
 ps: ## Show running containers
 	docker compose ps
 

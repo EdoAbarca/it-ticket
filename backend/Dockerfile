@@ -1,5 +1,5 @@
 # backend/Dockerfile
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS base
 WORKDIR /app
 
 # Copy package files
@@ -18,6 +18,13 @@ COPY . .
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
 RUN npx prisma generate
 
+# Development stage
+FROM base AS development
+EXPOSE 3000
+CMD ["npm", "run", "start:dev"]
+
+# Builder stage
+FROM base AS builder
 # Build the application
 RUN npm run build
 
