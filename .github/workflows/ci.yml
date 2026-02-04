@@ -172,30 +172,23 @@ jobs:
           curl -f http://localhost:5173 || (docker compose logs frontend && exit 1)
 
       - name: Login to Docker Hub
+        if: success()
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Get repository name
-        id: repo-name
-        run: |
-          echo "repo_name=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-
       - name: Tag and Push Docker images
+        if: success()
         run: |
-          # Tag backend image
-          docker tag it-ticket-backend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:latest
+          # Tag backend image with PR-specific tag
           docker tag it-ticket-backend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:pr-${{ github.event.pull_request.number }}
           
-          # Tag frontend image
-          docker tag it-ticket-frontend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:latest
+          # Tag frontend image with PR-specific tag
           docker tag it-ticket-frontend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:pr-${{ github.event.pull_request.number }}
           
-          # Push images
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:latest
+          # Push images with PR-specific tags
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:pr-${{ github.event.pull_request.number }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:pr-${{ github.event.pull_request.number }}
 
       - name: Show logs on failure
