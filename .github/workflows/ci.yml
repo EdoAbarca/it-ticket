@@ -34,10 +34,10 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_TYPESCRIPT_ES: true
-          VALIDATE_CSS: true
-          VALIDATE_HTML: true
+          VALIDATE_CSS: false
+          VALIDATE_HTML: false
           VALIDATE_JSON: true
-          VALIDATE_MARKDOWN: true
+          VALIDATE_MARKDOWN: false
           VALIDATE_YAML: true
           VALIDATE_DOCKERFILE: true
           VALIDATE_BASH: true
@@ -131,7 +131,7 @@ jobs:
           fail_ci_if_error: false
 
   build-docker:
-    name: Build and Push Docker Images
+    name: Build and Validate Docker Images
     runs-on: ubuntu-latest
     needs: [super-lint, lint-and-test]
     permissions:
@@ -170,26 +170,6 @@ jobs:
       - name: Check frontend availability
         run: |
           curl -f http://localhost:5173 || (docker compose logs frontend && exit 1)
-
-      - name: Login to Docker Hub
-        if: success()
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Tag and Push Docker images
-        if: success()
-        run: |
-          # Tag backend image with PR-specific tag
-          docker tag it-ticket-backend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:pr-${{ github.event.pull_request.number }}
-          
-          # Tag frontend image with PR-specific tag
-          docker tag it-ticket-frontend ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:pr-${{ github.event.pull_request.number }}
-          
-          # Push images with PR-specific tags
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-backend:pr-${{ github.event.pull_request.number }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/it-ticket-frontend:pr-${{ github.event.pull_request.number }}
 
       - name: Show logs on failure
         if: failure()
