@@ -180,7 +180,7 @@ jobs:
       - name: Get repository name
         id: repo-name
         run: |
-          echo "repo_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "repo_name=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Tag and Push Docker images
         run: |
