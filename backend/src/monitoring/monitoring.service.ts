@@ -160,6 +160,7 @@ export class MonitoringService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getLogs(_limit = 100, _level?: string): any[] {
     // This is a simple in-memory log retrieval
     // In production, you'd integrate with a proper logging service

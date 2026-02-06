@@ -5,7 +5,6 @@ import { NotificationType } from '@prisma/client';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
-  let service: NotificationsService;
 
   const mockNotificationsService = {
     getUserNotifications: jest.fn(),
@@ -32,7 +31,6 @@ describe('NotificationsController', () => {
     }).compile();
 
     controller = module.get<NotificationsController>(NotificationsController);
-    service = module.get<NotificationsService>(NotificationsService);
   });
 
   afterEach(() => {

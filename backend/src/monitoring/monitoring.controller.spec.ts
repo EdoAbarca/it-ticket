@@ -61,12 +61,14 @@ describe('MonitoringController', () => {
         },
       };
 
-      jest.spyOn(service, 'getHealthCheck').mockResolvedValue(mockHealthCheck);
+      const spy = jest
+        .spyOn(service, 'getHealthCheck')
+        .mockResolvedValue(mockHealthCheck);
 
       const result = await controller.getHealth();
 
       expect(result).toEqual(mockHealthCheck);
-      expect(service.getHealthCheck).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
     });
 
     it('should handle unhealthy status', async () => {
@@ -118,12 +120,14 @@ describe('MonitoringController', () => {
         },
       };
 
-      jest.spyOn(service, 'getMetrics').mockReturnValue(mockMetrics);
+      const spy = jest
+        .spyOn(service, 'getMetrics')
+        .mockReturnValue(mockMetrics);
 
       const result = controller.getMetrics();
 
       expect(result).toEqual(mockMetrics);
-      expect(service.getMetrics).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -131,34 +135,34 @@ describe('MonitoringController', () => {
     it('should return logs with default parameters', () => {
       const mockLogs: any[] = [];
 
-      jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
+      const spy = jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
 
       const result = controller.getLogs();
 
       expect(result).toEqual(mockLogs);
-      expect(service.getLogs).toHaveBeenCalledWith(undefined, undefined);
+      expect(spy).toHaveBeenCalledWith(undefined, undefined);
     });
 
     it('should return logs with custom limit', () => {
       const mockLogs: any[] = [];
 
-      jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
+      const spy = jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
 
       const result = controller.getLogs(50);
 
       expect(result).toEqual(mockLogs);
-      expect(service.getLogs).toHaveBeenCalledWith(50, undefined);
+      expect(spy).toHaveBeenCalledWith(50, undefined);
     });
 
     it('should return logs with custom level', () => {
       const mockLogs: any[] = [];
 
-      jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
+      const spy = jest.spyOn(service, 'getLogs').mockReturnValue(mockLogs);
 
       const result = controller.getLogs(100, 'error');
 
       expect(result).toEqual(mockLogs);
-      expect(service.getLogs).toHaveBeenCalledWith(100, 'error');
+      expect(spy).toHaveBeenCalledWith(100, 'error');
     });
   });
 });

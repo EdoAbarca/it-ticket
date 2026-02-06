@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 describe('AdminGuard', () => {
   let guard: AdminGuard;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -25,7 +24,6 @@ describe('AdminGuard', () => {
     }).compile();
 
     guard = module.get<AdminGuard>(AdminGuard);
-    prismaService = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
