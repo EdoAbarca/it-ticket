@@ -7,8 +7,6 @@ import { AdminGuard } from '../auth/admin.guard';
 
 describe('DatabaseController', () => {
   let controller: DatabaseController;
-  let migrationService: MigrationService;
-  let backupService: BackupService;
 
   const mockMigrationService = {
     getMigrationStatus: jest.fn(),
@@ -45,8 +43,6 @@ describe('DatabaseController', () => {
       .compile();
 
     controller = module.get<DatabaseController>(DatabaseController);
-    migrationService = module.get<MigrationService>(MigrationService);
-    backupService = module.get<BackupService>(BackupService);
   });
 
   afterEach(() => {
@@ -64,7 +60,7 @@ describe('DatabaseController', () => {
       const result = await controller.getMigrationStatus();
 
       expect(result).toEqual(mockStatus);
-      expect(migrationService.getMigrationStatus).toHaveBeenCalled();
+      expect(mockMigrationService.getMigrationStatus).toHaveBeenCalled();
     });
   });
 
@@ -79,7 +75,7 @@ describe('DatabaseController', () => {
       const result = await controller.applyMigrations();
 
       expect(result).toEqual(mockResult);
-      expect(migrationService.applyPendingMigrations).toHaveBeenCalled();
+      expect(mockMigrationService.applyPendingMigrations).toHaveBeenCalled();
     });
   });
 
@@ -94,7 +90,7 @@ describe('DatabaseController', () => {
       const result = await controller.validateSchema();
 
       expect(result).toEqual(mockResult);
-      expect(migrationService.validateSchema).toHaveBeenCalled();
+      expect(mockMigrationService.validateSchema).toHaveBeenCalled();
     });
   });
 
@@ -110,7 +106,7 @@ describe('DatabaseController', () => {
       const result = await controller.getDatabaseInfo();
 
       expect(result).toEqual(mockInfo);
-      expect(migrationService.getDatabaseInfo).toHaveBeenCalled();
+      expect(mockMigrationService.getDatabaseInfo).toHaveBeenCalled();
     });
   });
 
@@ -128,7 +124,7 @@ describe('DatabaseController', () => {
       const result = await controller.createBackup();
 
       expect(result).toEqual(mockBackup);
-      expect(backupService.createBackup).toHaveBeenCalled();
+      expect(mockBackupService.createBackup).toHaveBeenCalled();
     });
   });
 
@@ -149,7 +145,7 @@ describe('DatabaseController', () => {
       const result = await controller.listBackups();
 
       expect(result).toEqual(mockBackups);
-      expect(backupService.listBackups).toHaveBeenCalled();
+      expect(mockBackupService.listBackups).toHaveBeenCalled();
     });
   });
 
@@ -166,7 +162,9 @@ describe('DatabaseController', () => {
       const result = await controller.restoreBackup(dto);
 
       expect(result).toEqual(mockResult);
-      expect(backupService.restoreBackup).toHaveBeenCalledWith(dto.filename);
+      expect(mockBackupService.restoreBackup).toHaveBeenCalledWith(
+        dto.filename,
+      );
     });
   });
 
@@ -182,7 +180,7 @@ describe('DatabaseController', () => {
       const result = await controller.deleteBackup(dto);
 
       expect(result).toEqual(mockResult);
-      expect(backupService.deleteBackup).toHaveBeenCalledWith(dto.filename);
+      expect(mockBackupService.deleteBackup).toHaveBeenCalledWith(dto.filename);
     });
   });
 });

@@ -57,6 +57,7 @@ export class BackupService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listBackups() {
     try {
       if (!fs.existsSync(this.backupDir)) {
@@ -124,6 +125,7 @@ export class BackupService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async deleteBackup(filename: string) {
     const filepath = path.join(this.backupDir, filename);
 
