@@ -1,5 +1,5 @@
 # frontend/Dockerfile
-FROM node:20-alpine AS build
+FROM node:20-alpine AS base
 WORKDIR /app
 
 # Copy package files
@@ -12,6 +12,13 @@ RUN npm ci --only=production=false || npm install
 # Copy source code
 COPY . .
 
+# Development stage
+FROM base AS development
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
+
+# Build stage
+FROM base AS build
 # Build the application
 RUN npm run build
 
