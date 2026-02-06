@@ -336,4 +336,5 @@ For issues and questions:
 - Check [TICKET_FEATURE.md](./TICKET_FEATURE.md) for feature documentation
 - Check [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) for database management and backup/restore procedures
 - Check [MONITORING.md](./MONITORING.md) for application monitoring and health checks
+- Check [terraform/README.md](./terraform/README.md) for Terraform infrastructure documentation
 - Open an issue in the repository
