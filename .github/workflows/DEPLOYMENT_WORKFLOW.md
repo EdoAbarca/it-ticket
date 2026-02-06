@@ -39,7 +39,6 @@ Configure these secrets in your GitHub repository:
 ### 3. Repository Setup
 
 Ensure the repository has:
-- Terraform configuration in `terraform/` directory
 - Docker files for backend and frontend
 - GitHub Actions workflow at `.github/workflows/deploy.yml`
 
@@ -330,12 +329,7 @@ To reduce costs:
 
 ### Cleanup Resources
 
-To completely remove infrastructure and stop costs:
-
-```bash
-cd terraform
-terraform destroy
-```
+To completely remove infrastructure and stop costs, use the Terraform configuration from the dedicated infrastructure repository.
 
 **Warning**: This deletes all resources including the database. Create backups first!
 
@@ -371,7 +365,6 @@ After successful deployment:
 ## Additional Resources
 
 - [Main AWS Deployment Guide](../AWS_DEPLOYMENT.md)
-- [Terraform Configuration](../terraform/README.md)
 - [CI/CD Pipeline Documentation](../CICD.md)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [AWS ECS Best Practices](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/)

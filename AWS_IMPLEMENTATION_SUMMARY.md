@@ -13,7 +13,7 @@ All acceptance criteria from US-20 have been successfully implemented:
 **Acceptance Criteria**: Terraform template creates infrastructure in dedicated VPC
 
 **Implementation**:
-- Complete Terraform configuration in `terraform/` directory
+- Complete Terraform configuration (moved to separate repository)
 - VPC with CIDR 10.0.0.0/16
 - 2 public subnets for ALB (10.0.0.0/24, 10.0.1.0/24)
 - 2 private subnets for ECS and RDS (10.0.2.0/24, 10.0.3.0/24)
@@ -158,17 +158,7 @@ await s3Service.listFiles(prefix);
 ## Files Created/Modified
 
 ### Terraform Configuration
-- `terraform/main.tf` - VPC, subnets, routing
-- `terraform/variables.tf` - Configurable variables
-- `terraform/outputs.tf` - Infrastructure outputs
-- `terraform/rds.tf` - RDS PostgreSQL configuration
-- `terraform/s3.tf` - S3 bucket configuration
-- `terraform/ecs.tf` - ECS cluster, tasks, and service
-- `terraform/alb.tf` - Application Load Balancer
-- `terraform/ecr.tf` - Container registries
-- `terraform/terraform.tfvars.example` - Example configuration
-- `terraform/.gitignore` - Terraform-specific ignores
-- `terraform/README.md` - Terraform documentation
+Terraform configuration has been moved to a separate repository for infrastructure management.
 
 ### Backend Code
 - `backend/src/aws/aws-secrets.service.ts` - Secrets Manager integration
@@ -323,7 +313,6 @@ await s3Service.listFiles(prefix);
 - `README.md`: Quick start and overview
 - `AWS_DEPLOYMENT.md`: Comprehensive deployment guide
 - `.github/workflows/DEPLOYMENT_WORKFLOW.md`: Workflow usage
-- `terraform/README.md`: Infrastructure details
 
 ### Developer Documentation
 - AWS service integration patterns
