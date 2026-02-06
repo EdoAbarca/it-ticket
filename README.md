@@ -1,8 +1,6 @@
 # IT Ticket Management System
 
 [![CI](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/ci.yml)
-[![Security Scanning](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/security.yml)
-[![Docker Build](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml/badge.svg)](https://github.com/EdoAbarca/it-ticket/actions/workflows/docker.yml)
 
 A modern, full-stack IT ticket management system built with React, NestJS, and PostgreSQL. Fully containerized with Docker for easy deployment.
 
@@ -40,9 +38,6 @@ A modern, full-stack IT ticket management system built with React, NestJS, and P
 - Multi-stage builds for optimization
 - Health checks for reliability
 - Nginx for frontend serving
-- AWS deployment with Terraform
-- ECS Fargate for serverless containers
-- Infrastructure as Code (IaC)
 
 ## Quick Start
 
@@ -71,28 +66,6 @@ A modern, full-stack IT ticket management system built with React, NestJS, and P
 4. **Access the application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:3000
-
-For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
-
-### AWS Cloud Deployment
-
-Deploy to AWS using Infrastructure as Code (Terraform):
-
-1. **Configure GitHub Secrets**:
-   - `AWS_ACCESS_KEY_ID`
-   - `AWS_SECRET_ACCESS_KEY`
-   - `AWS_REGION`
-
-2. **Deploy via GitHub Actions**:
-   - Navigate to **Actions** → **Deploy to AWS**
-   - Click **Run workflow**
-   - Select environment and terraform action
-
-3. **Access the application**:
-   - Application URL will be provided in workflow output
-   - Example: `http://it-ticket-alb-production-xxx.region.elb.amazonaws.com`
-
-For detailed AWS deployment documentation, see [AWS_DEPLOYMENT.md](./AWS_DEPLOYMENT.md)
 
 ### Local Development
 
@@ -142,9 +115,12 @@ it-ticket/
 │   │   └── stores/      # Zustand stores
 │   ├── nginx.conf       # Nginx configuration
 │   └── Dockerfile       # Frontend container configuration
+├── .github/
+│   └── workflows/       # CI/CD workflows
+│       └── ci.yml       # Continuous Integration
 ├── docker-compose.yml   # Docker Compose configuration
 ├── Makefile            # Convenient commands
-└── DOCKER.md           # Docker documentation
+└── README.md           # Project documentation
 ```
 
 ## Available Commands
@@ -218,14 +194,10 @@ npm run lint         # Lint code
 - `POST /admin/database/restore` - Restore from backup
 - `DELETE /admin/database/backup` - Delete a backup
 
-For detailed documentation, see [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)
-
 ### Application Monitoring
 - `GET /monitoring/health` - Application health check
 - `GET /monitoring/metrics` - Performance metrics (Admin only)
 - `GET /monitoring/logs` - Application logs (Admin only)
-
-For detailed documentation, see [MONITORING.md](./MONITORING.md)
 
 ## Environment Variables
 
@@ -272,15 +244,7 @@ Test coverage is maintained above 80%.
 
 ## CI/CD Pipeline
 
-This project uses a comprehensive CI/CD pipeline for automated testing, security scanning, and deployment.
-
-### Automated Workflows
-
-- **Continuous Integration**: Automatic testing and building on every push and PR
-- **Pull Request Validation**: Code quality checks and test coverage enforcement
-- **Security Scanning**: Daily vulnerability scans and CodeQL analysis
-- **Docker Build**: Automated container building and health checks
-- **Deployment**: Manual deployment to staging and production environments
+This project uses automated testing and building on every push and PR.
 
 ### For Developers
 
@@ -301,9 +265,6 @@ All PRs must:
 - Pass linting checks
 - Have passing tests
 - Maintain >80% test coverage
-- Pass security scans
-
-For detailed CI/CD documentation, see [CICD.md](./CICD.md)
 
 ## Security
 
@@ -330,11 +291,5 @@ This project is licensed under the UNLICENSED License.
 ## Support
 
 For issues and questions:
-- Check [AWS_DEPLOYMENT.md](./AWS_DEPLOYMENT.md) for AWS deployment guide
-- Check [DOCKER.md](./DOCKER.md) for containerization issues
-- Check [CICD.md](./CICD.md) for CI/CD pipeline documentation
-- Check [TICKET_FEATURE.md](./TICKET_FEATURE.md) for feature documentation
-- Check [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) for database management and backup/restore procedures
-- Check [MONITORING.md](./MONITORING.md) for application monitoring and health checks
-- Check [terraform/README.md](./terraform/README.md) for Terraform infrastructure documentation
 - Open an issue in the repository
+- Check the API documentation above
