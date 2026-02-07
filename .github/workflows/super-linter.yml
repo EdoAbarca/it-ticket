@@ -48,11 +48,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
           
-          # Disable JS/TS linting (handled by project's ESLint)
-          VALIDATE_TYPESCRIPT_ES: false
-          VALIDATE_JAVASCRIPT_ES: false
-          
-          # Enable YAML, Markdown, Dockerfile, and JSON linting
+          # Enable only specific linters (YAML, Markdown, Dockerfile, JSON)
+          # JS/TS linting is handled by project's native ESLint in previous steps
           VALIDATE_YAML: true
           VALIDATE_MARKDOWN: true
           VALIDATE_DOCKERFILE_HADOLINT: true
