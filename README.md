@@ -64,8 +64,8 @@ A modern, full-stack IT ticket management system built with React, NestJS, and P
    ```
 
 4. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3000
+   - Frontend: <http://localhost:5173>
+   - Backend API: <http://localhost:3000>
 
 ### Local Development
 
@@ -95,7 +95,7 @@ npm run dev
 
 ## Project Structure
 
-```
+```text
 it-ticket/
 ├── backend/              # NestJS backend application
 │   ├── src/
