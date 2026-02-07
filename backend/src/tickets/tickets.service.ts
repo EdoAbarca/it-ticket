@@ -124,7 +124,7 @@ export class TicketsService {
   }
 
   async findOne(id: string, userId: string) {
-    return this.prisma.ticket.findFirst({
+    return await this.prisma.ticket.findFirst({
       where: {
         id,
         userId,
@@ -200,7 +200,7 @@ export class TicketsService {
   }
 
   async findTicketById(id: string) {
-    return this.prisma.ticket.findUnique({
+    return await this.prisma.ticket.findUnique({
       where: { id },
       include: {
         user: {
