@@ -13,7 +13,7 @@ export class NotificationsService {
     ticketId: string,
     commentId?: string,
   ) {
-    return this.prisma.notification.create({
+    return await this.prisma.notification.create({
       data: {
         userId,
         type,
@@ -30,7 +30,7 @@ export class NotificationsService {
       where.isRead = false;
     }
 
-    return this.prisma.notification.findMany({
+    return await this.prisma.notification.findMany({
       where,
       orderBy: {
         createdAt: 'desc',
@@ -40,7 +40,7 @@ export class NotificationsService {
   }
 
   async getUnreadCount(userId: string) {
-    return this.prisma.notification.count({
+    return await this.prisma.notification.count({
       where: {
         userId,
         isRead: false,
@@ -49,7 +49,7 @@ export class NotificationsService {
   }
 
   async markAsRead(notificationId: string, userId: string) {
-    return this.prisma.notification.updateMany({
+    return await this.prisma.notification.updateMany({
       where: {
         id: notificationId,
         userId,
@@ -61,7 +61,7 @@ export class NotificationsService {
   }
 
   async markAllAsRead(userId: string) {
-    return this.prisma.notification.updateMany({
+    return await this.prisma.notification.updateMany({
       where: {
         userId,
         isRead: false,
@@ -73,7 +73,7 @@ export class NotificationsService {
   }
 
   async deleteNotification(notificationId: string, userId: string) {
-    return this.prisma.notification.deleteMany({
+    return await this.prisma.notification.deleteMany({
       where: {
         id: notificationId,
         userId,
