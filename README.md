@@ -139,7 +139,7 @@ make restart         # Restart all services
 
 ### Using npm
 
-#### Backend
+#### Backend Commands
 ```bash
 npm run build        # Build for production
 npm run start        # Start production server
@@ -148,7 +148,7 @@ npm run test         # Run tests
 npm run lint         # Lint code
 ```
 
-#### Frontend
+#### Frontend Commands
 ```bash
 npm run build        # Build for production
 npm run dev          # Start development server
