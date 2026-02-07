@@ -1,0 +1,60 @@
+name: Super-Linter
+
+on:
+  pull_request:
+    branches: ["dev", "main"]
+
+jobs:
+  super-lint:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Super-Linter
+        uses: github/super-linter/slim@v7
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          
+          # Enable specific linters
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_YAML: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_JSON: true
+          
+          # Use project's ESLint configurations
+          TYPESCRIPT_ES_CONFIG_FILE: backend/eslint.config.mjs
+          JAVASCRIPT_ES_CONFIG_FILE: frontend/eslint.config.js
+          
+          # Ignore certain files/directories
+          FILTER_REGEX_EXCLUDE: '.*/(node_modules|dist|build|coverage|\.next|\.vscode|\.git)/.*'
+          
+          # Show more details
+          LINTER_RULES_PATH: /
+          LOG_LEVEL: VERBOSE
