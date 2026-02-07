@@ -5,7 +5,7 @@ on:
     branches: ["dev", "main"]
 
 jobs:
-  super-lint:
+  lint-code:
     name: Lint Code Base
     runs-on: ubuntu-latest
     
@@ -33,28 +33,33 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Super-Linter
+      - name: Lint Backend (TypeScript)
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Lint Frontend (JavaScript)
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run Super-Linter for Additional Files
         uses: github/super-linter/slim@v7
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
           
-          # Enable specific linters
-          VALIDATE_TYPESCRIPT_ES: true
-          VALIDATE_JAVASCRIPT_ES: true
+          # Disable JS/TS linting (handled by project's ESLint)
+          VALIDATE_TYPESCRIPT_ES: false
+          VALIDATE_JAVASCRIPT_ES: false
+          
+          # Enable YAML, Markdown, Dockerfile, and JSON linting
           VALIDATE_YAML: true
           VALIDATE_MARKDOWN: true
           VALIDATE_DOCKERFILE_HADOLINT: true
           VALIDATE_JSON: true
           
-          # Use project's ESLint configurations
-          TYPESCRIPT_ES_CONFIG_FILE: backend/eslint.config.mjs
-          JAVASCRIPT_ES_CONFIG_FILE: frontend/eslint.config.js
-          
           # Ignore certain files/directories
-          FILTER_REGEX_EXCLUDE: '.*/(node_modules|dist|build|coverage|\.next|\.vscode|\.git)/.*'
+          FILTER_REGEX_EXCLUDE: '.*/(node_modules|dist|build|coverage|\.next|\.vscode|\.git|package-lock\.json)/.*'
           
           # Show more details
-          LINTER_RULES_PATH: /
-          LOG_LEVEL: VERBOSE
+          LOG_LEVEL: WARN
